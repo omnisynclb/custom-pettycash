@@ -1,4 +1,16 @@
 frappe.ui.form.on('Petty Cash Settlement', {
+    setup: function(frm) {
+        frm.set_query('account', function() {
+            return {
+                filters: {
+                    company: frm.doc.company,
+                    root_type: 'Expense',
+                    is_group: 0,
+                    disabled: 0
+                }
+            };
+        });
+    },
     center_officer: function(frm) {
         load_petty_cash_configuration(frm);
     },

@@ -9,9 +9,19 @@
   "center_officer",
   "cost_center",
   "petty_cash_account",
+  "payment_account",
   "petty_cash_limit"
  ],
  "fields": [
+  {
+   "description": "Whish wallet or clearing account credited when a settlement is paid.",
+   "fieldname": "payment_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Payment Account",
+   "options": "Account",
+   "reqd": 1
+  },
   {
    "fieldname": "section_break_s3jg",
    "fieldtype": "Section Break"

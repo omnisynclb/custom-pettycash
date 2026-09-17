@@ -7,12 +7,26 @@ app_license = "mit"
 
 fixtures = [
     {
+        "dt": "Role",
+        "filters": [["name", "in", ["Center Officer", "Accountant", "Finance", "Operations", "Treasurer"]]],
+    },
+    {
         "dt": "Workflow",
         "filters": [
             ["name", "=", "Petty Cash Settlement Workflow"]
         ]
     }
 ]
+
+required_apps = ["erpnext"]
+
+permission_query_conditions = {
+    "Petty Cash Settlement": "center_expense_management.permissions.settlement_query_condition",
+}
+
+has_permission = {
+    "Petty Cash Settlement": "center_expense_management.permissions.settlement_has_permission",
+}
 scheduler_events = {
     "daily": [
         "center_expense_management.tasks.create_monthly_petty_cash_whish"
@@ -268,4 +282,3 @@ scheduler_events = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

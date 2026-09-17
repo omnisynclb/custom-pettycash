@@ -17,7 +17,8 @@
   {
    "fieldname": "month_and_year",
    "fieldtype": "Date",
-   "label": "Month and Year"
+   "label": "Month and Year",
+   "reqd": 1
   },
   {
    "fieldname": "employees",

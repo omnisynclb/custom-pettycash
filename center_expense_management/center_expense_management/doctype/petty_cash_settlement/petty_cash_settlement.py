@@ -6,19 +6,50 @@ import frappe
 from frappe import _
 from erpnext.accounts.utils import get_balance_on
 from frappe.model.document import Document
-from frappe.utils import escape_html, flt, formatdate
+from frappe.utils import escape_html, flt, formatdate, validate_email_address
 from frappe.utils.pdf import get_pdf
+
+from center_expense_management.permissions import can_review_all, employee_for_user
+
+
+BUSINESS_FIELDS = {
+    "center_officer",
+    "month",
+    "expenses",
+    "account",
+    "payment_method",
+    "report_email",
+}
 
 
 class PettyCashSettlement(Document):
 
     def validate(self):
+        self.bind_center_officer_to_user()
+        self.month = frappe.utils.get_first_day(self.month) if self.month else self.month
+        self.set_settlement_month()
+        self.validate_stage_changes()
         self.validate_center_officer_and_month()
         self.load_petty_cash_configuration()
-        self.load_account_balance()
         self.validate_expenses()
         self.calculate_totals()
         self.validate_finance_account()
+
+        self.amount = self.total_expenses
+
+        if self.workflow_state == "Completed":
+            if self.payment_method != "Whish":
+                frappe.throw("Payment Method must be Whish before completion.")
+            if not self.report_email:
+                frappe.throw("Report Email is required before completion.")
+            validate_email_address(self.report_email, throw=True)
+
+    def set_settlement_month(self):
+        if self.month:
+            self.settlement_month = frappe.utils.getdate(self.month).strftime("%Y-%m")
+            self.active_month_key = (
+                f"{self.center_officer}:{self.settlement_month}" if self.docstatus != 2 else None
+            )
 
     def on_update(self):
         if (
@@ -26,13 +57,61 @@ class PettyCashSettlement(Document):
             and self.has_value_changed("workflow_state")
         ):
             self.create_whish_journal_entry()
-            self.reload()
+            self.db_set("report_delivery_status", "Queued")
+            frappe.enqueue(
+                "center_expense_management.tasks.generate_and_email_settlement_report",
+                queue="short",
+                enqueue_after_commit=True,
+                deduplicate=True,
+                job_id=f"petty-cash-report-{self.name}",
+                settlement_name=self.name,
+            )
 
-            pdf_url = self.generate_pdf_report()
-            self.send_pdf_report_by_email(pdf_url)
+    def on_cancel(self):
+        self.cancel_payment_artifacts()
+        self.db_set("active_month_key", None)
+
+    def bind_center_officer_to_user(self):
+        if can_review_all():
+            return
+
+        employee = employee_for_user()
+        if not employee:
+            frappe.throw("Your user must be linked to an active Employee record.", frappe.PermissionError)
+
+        if self.is_new():
+            self.center_officer = employee
+        elif self.center_officer != employee:
+            frappe.throw("Center Officers may only maintain their own settlements.", frappe.PermissionError)
+
+    def validate_stage_changes(self):
+        before = self.get_doc_before_save()
+        if not before:
+            return
+
+        previous_state = before.workflow_state or "Draft"
+        allowed = BUSINESS_FIELDS if previous_state == "Draft" else set()
+        if previous_state == "Pending Finance Review":
+            allowed = {"account", "report_email"}
+
+        changed = {field for field in BUSINESS_FIELDS if self.has_value_changed(field)}
+        forbidden = changed - allowed
+        if forbidden:
+            labels = ", ".join(sorted(self.meta.get_label(field) for field in forbidden))
+            frappe.throw(f"These fields cannot be changed during {previous_state}: {labels}.")
 
 
     def validate_finance_account(self):
+        if self.account:
+            account = frappe.get_cached_doc("Account", self.account)
+            if (
+                account.is_group
+                or account.disabled
+                or account.root_type != "Expense"
+                or account.company != self.company
+            ):
+                frappe.throw("Finance Account must be an enabled Expense ledger account for this company.")
+
         if not self._doc_before_save:
             return
 
@@ -41,24 +120,24 @@ class PettyCashSettlement(Document):
         if (
             previous_state == "Pending Finance Review"
             and self.workflow_state == "Pending Operations Approval"
-            and not self.account
         ):
-            frappe.throw(
-                "Finance must select an Account before approving the settlement."
-            )
+            if not self.account:
+                frappe.throw("Finance must select an Account before approving the settlement.")
+            if self.payment_method != "Whish":
+                frappe.throw("Payment Method must be Whish before Finance approval.")
+            if not self.report_email:
+                frappe.throw("Report Email is required before Finance approval.")
+            validate_email_address(self.report_email, throw=True)
 
     def validate_center_officer_and_month(self):
         if not self.center_officer or not self.month:
             return
 
-        month_start = frappe.utils.get_first_day(self.month)
-        month_end = frappe.utils.get_last_day(self.month)
-
         existing = frappe.db.exists(
             "Petty Cash Settlement",
             {
                 "center_officer": self.center_officer,
-                "month": ["between", [month_start, month_end]],
+                "settlement_month": self.settlement_month,
                 "name": ["!=", self.name]
             }
         )
@@ -100,9 +179,9 @@ class PettyCashSettlement(Document):
         # Load the existing Petty Cash Whish.
         whish = frappe.get_doc("Petty Cash Whish", whish_name)
 
-        # Prevent the same employee from being added twice.
+        # Idempotency is based on the settlement, not a non-unique display name.
         for row in whish.employees:
-            if row.employee_name == employee.employee_name:
+            if row.settlement == self.name:
                 return
 
         # Add the employee's payment information.
@@ -110,20 +189,27 @@ class PettyCashSettlement(Document):
             "employees",
             {
                 "employee_name": employee.employee_name,
+                "employee": employee.name,
+                "settlement": self.name,
                 "phone_number": None,
                 "whish_id": None,
                 "salary_received_net": self.total_expenses,
-                "currency": None,
+                "currency": frappe.db.get_value("Company", self.company, "default_currency"),
             }
         )
 
+        whish.flags.ignore_permissions = True
         whish.save()
 
     def load_petty_cash_configuration(self):
+        before = self.get_doc_before_save()
+        if before and (before.workflow_state or "Draft") != "Draft":
+            return
+
         config = frappe.db.get_value(
             "Petty Cash Configuration",
             {"center_officer": self.center_officer},
-            ["cost_center", "petty_cash_account", "petty_cash_limit"],
+            ["cost_center", "petty_cash_account", "payment_account", "petty_cash_limit"],
             as_dict=True
         )
 
@@ -134,22 +220,37 @@ class PettyCashSettlement(Document):
 
         self.cost_center = config.cost_center
         self.petty_cash_account = config.petty_cash_account
+        self.payment_account = config.payment_account
         self.petty_cash_limit = config.petty_cash_limit
+        self.company = frappe.db.get_value("Cost Center", config.cost_center, "company")
 
     @frappe.whitelist()
     def load_account_balance(self):
+        if "Finance" not in frappe.get_roles() and "System Manager" not in frappe.get_roles():
+           frappe.throw("Only Finance may select and inspect the settlement account.", frappe.PermissionError)
+
+        if self.workflow_state != "Pending Finance Review":
+           frappe.throw("The account can only be selected during Finance Review.")
+
         if not self.account:
            self.amount = 0
            return
 
         account = frappe.get_cached_doc("Account", self.account)
 
+        if not frappe.has_permission("Account", "read", account.name):
+           frappe.throw("You do not have permission to read this Account.", frappe.PermissionError)
+
         if account.is_group:
            frappe.throw(
                _("Please select a ledger account, not an account group.")
            )
 
-        self.amount = get_balance_on(
+        if account.disabled or account.company != self.company or account.root_type != "Expense":
+           frappe.throw(_("Select an enabled Expense ledger account for {0}.").format(self.company))
+
+        # Do not persist or disclose an unrelated ledger balance through the settlement.
+        return get_balance_on(
           account=self.account,
           date=frappe.utils.today(),
           company=account.company
@@ -174,6 +275,15 @@ class PettyCashSettlement(Document):
                     f"Receipt is required for expense row {expense.idx}."
                 )
 
+            receipt = frappe.db.get_value(
+                "File", {"file_url": expense.receipt}, ["name", "is_private"], as_dict=True
+            )
+            if not receipt or not receipt.is_private:
+                frappe.throw(f"Expense row {expense.idx}: Receipt must be a valid private File attachment.")
+
+            if frappe.utils.get_first_day(expense.expense_date) != frappe.utils.get_first_day(self.month):
+                frappe.throw(f"Expense row {expense.idx}: Expense Date must be in the settlement month.")
+
     def calculate_totals(self):
         total = sum(
             expense.amount or 0
@@ -188,6 +298,8 @@ class PettyCashSettlement(Document):
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
     def create_whish_journal_entry(self):
+        if frappe.session.user != "Administrator" and "Treasurer" not in frappe.get_roles():
+            frappe.throw("Only Treasurer may complete a settlement payment.", frappe.PermissionError)
         if self.payment_status == "Paid":
             frappe.throw(
                 "This Petty Cash Settlement has already been paid."
@@ -209,17 +321,17 @@ class PettyCashSettlement(Document):
         whish_account = frappe.db.get_value(
             "Account",
             {
-                "name": "Whish - OS",
+                "name": self.payment_account,
                 "is_group": 0,
                 "disabled": 0
             },
-            ["name", "company"],
+            ["name", "company", "account_currency"],
             as_dict=True
         )
 
         if not whish_account:
             frappe.throw(
-                "The Whish - OS account could not be found or is disabled."
+                "The configured Payment Account could not be found or is disabled."
             )
 
         company = whish_account.company
@@ -251,6 +363,14 @@ class PettyCashSettlement(Document):
                 f"Account {self.account} does not belong to Company {company}."
             )
 
+        expense_account = frappe.get_cached_doc("Account", self.account)
+        if expense_account.is_group or expense_account.disabled or expense_account.root_type != "Expense":
+            frappe.throw("The Finance Account must be an enabled Expense ledger account.")
+
+        company_currency = frappe.db.get_value("Company", company, "default_currency")
+        if expense_account.account_currency != company_currency or whish_account.account_currency != company_currency:
+            frappe.throw("Settlement accounts must use the company currency.")
+
         journal_entry = frappe.new_doc("Journal Entry")
 
         journal_entry.posting_date = self.payment_date
@@ -276,6 +396,7 @@ class PettyCashSettlement(Document):
             }
         )
 
+        journal_entry.flags.ignore_permissions = True
         journal_entry.insert()
         journal_entry.submit()
 
@@ -284,7 +405,36 @@ class PettyCashSettlement(Document):
         self.update_petty_cash_whish()
 
         return journal_entry.name
+
+    def cancel_payment_artifacts(self):
+        if self.journal_entry:
+            journal_entry = frappe.get_doc("Journal Entry", self.journal_entry)
+            if journal_entry.docstatus == 1:
+                journal_entry.flags.ignore_permissions = True
+                journal_entry.cancel()
+
+        whish_name = frappe.db.get_value(
+            "Petty Cash Whish Employee", {"settlement": self.name}, "parent"
+        )
+        if whish_name:
+            whish = frappe.get_doc("Petty Cash Whish", whish_name)
+            whish.set("employees", [row for row in whish.employees if row.settlement != self.name])
+            whish.flags.ignore_permissions = True
+            whish.save()
     def generate_pdf_report(self):
+        existing = frappe.db.get_value(
+            "File",
+            {
+                "attached_to_doctype": "Petty Cash Settlement",
+                "attached_to_name": self.name,
+                "file_name": f"{self.name}.pdf",
+                "is_private": 1,
+            },
+            "name",
+        )
+        if existing:
+            return existing
+
         html = self.build_pdf_html()
 
         pdf_content = get_pdf(html)
@@ -300,7 +450,7 @@ class PettyCashSettlement(Document):
 
         file_doc.save(ignore_permissions=True)
 
-        return file_doc.file_url
+        return file_doc.name
 
     def build_pdf_html(self):
         expense_rows = []
@@ -556,15 +706,13 @@ class PettyCashSettlement(Document):
 
         </div>
         """
-    def send_pdf_report_by_email(self, file_url):
+    def send_pdf_report_by_email(self, file_name):
         if not self.report_email:
             frappe.throw(
                 _("Report Email is required before completing the settlement.")
             )
 
-        file_name = file_url.split("/")[-1]
-
-        file_path = frappe.get_site_path("private", "files", file_name)
+        file_doc = frappe.get_doc("File", file_name)
 
         frappe.sendmail(
             recipients=[self.report_email],
@@ -584,18 +732,33 @@ class PettyCashSettlement(Document):
             """,
             attachments=[
                 {
-                    "fname": file_name,
-                    "fcontent": open(file_path, "rb").read(),
+                    "fname": file_doc.file_name,
+                    "fcontent": file_doc.get_content(),
                 }
             ],
         )
     @frappe.whitelist()
     def add_return_comment(self, reason, action):
+        allowed_actions = {
+            "Return to Center Officer": ("Pending Accountant Review", "Accountant"),
+            "Return to Accountant": ("Pending Finance Review", "Finance"),
+            "Return to Finance": ("Pending Operations Approval", "Operations"),
+        }
+        if action not in allowed_actions:
+            frappe.throw("Invalid return action.")
+
+        expected_state, required_role = allowed_actions[action]
+        if self.workflow_state != expected_state or required_role not in frappe.get_roles():
+            frappe.throw("You cannot perform this return action.", frappe.PermissionError)
+
+        if not reason or not reason.strip():
+            frappe.throw("A return reason is required.")
+
         self.add_comment(
             "Comment",
             text=(
                 f"<b>Settlement Returned</b><br>"
-                f"Action: {action}<br>"
-                f"Reason: {reason}"
+                f"Action: {escape_html(action)}<br>"
+                f"Reason: {escape_html(reason.strip())}"
             )
         )

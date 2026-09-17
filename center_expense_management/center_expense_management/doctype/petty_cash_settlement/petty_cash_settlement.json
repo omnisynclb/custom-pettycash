@@ -10,9 +10,13 @@
   "amended_from",
   "center_officer",
   "month",
+  "settlement_month",
+  "active_month_key",
   "column_break_7l5j",
   "cost_center",
   "petty_cash_account",
+  "payment_account",
+  "company",
   "settlement_information_section",
   "petty_cash_limit",
   "total_expenses",
@@ -30,8 +34,47 @@
   "journal_entry",
   "payment_status",
   "report_email"
+  ,"report_delivery_status"
  ],
  "fields": [
+  {
+   "allow_on_submit": 1,
+   "fieldname": "report_delivery_status",
+   "fieldtype": "Select",
+   "label": "Report Delivery Status",
+   "options": "\nQueued\nSent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "active_month_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Active Month Key",
+   "read_only": 1
+  },
+  {
+   "fieldname": "settlement_month",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Settlement Month",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_account",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Payment Account",
+   "options": "Account",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Company",
+   "options": "Company",
+   "read_only": 1
+  },
   {
    "fieldname": "section_break_1oge",
    "fieldtype": "Section Break",
@@ -142,10 +185,12 @@
    "label": "Payment Information"
   },
   {
+   "default": "Whish",
    "fieldname": "payment_method",
    "fieldtype": "Select",
    "label": "Payment Method",
-   "options": "Whish"
+   "options": "Whish",
+   "reqd": 1
   },
   {
    "fieldname": "payment_date",
@@ -213,43 +258,38 @@
   },
   {
    "create": 1,
-   "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Center Officer",
-   "share": 1,
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Accountant",
-   "share": 1,
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Finance",
+   "write": 1
+  },
+  {
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Operations",
-   "share": 1,
    "write": 1
   },
   {
-   "email": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "Treasurer",
-   "share": 1,
    "write": 1
   }
  ],

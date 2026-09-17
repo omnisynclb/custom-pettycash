@@ -8,12 +8,28 @@
  "field_order": [
   "section_break_6ezf",
   "employee_name",
+  "employee",
+  "settlement",
   "phone_number",
   "whish_id",
   "salary_received_net",
   "currency"
  ],
  "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "settlement",
+   "fieldtype": "Link",
+   "label": "Settlement",
+   "options": "Petty Cash Settlement",
+   "read_only": 1
+  },
   {
    "fieldname": "section_break_6ezf",
    "fieldtype": "Section Break"

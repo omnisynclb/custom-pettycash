@@ -20,6 +20,18 @@ def create_monthly_petty_cash_whish():
         "month_and_year": month
     })
 
-    whish.insert(ignore_permissions=True)
+    try:
+        whish.insert(ignore_permissions=True)
+    except frappe.DuplicateEntryError:
+        # Another worker created the same uniquely named monthly record.
+        return
 
-    frappe.db.commit()
+
+def generate_and_email_settlement_report(settlement_name):
+    settlement = frappe.get_doc("Petty Cash Settlement", settlement_name)
+    if settlement.docstatus != 1 or settlement.payment_status != "Paid":
+        frappe.throw("Only a paid, submitted settlement can be reported.")
+
+    file_name = settlement.generate_pdf_report()
+    settlement.send_pdf_report_by_email(file_name)
+    settlement.db_set("report_delivery_status", "Sent")

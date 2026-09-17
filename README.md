@@ -30,7 +30,7 @@ The application also maintains a monthly **Petty Cash Whish** record. A new mont
   * Petty Cash Account
   * Petty Cash Limit
 * Finance account selection during Finance Review
-* Automatic loading of the available balance of the selected ERPNext Account
+* Finance-only account lookup with company and expense-account restrictions
 * Automatic calculation of:
 
   * Total Expenses
@@ -156,9 +156,24 @@ The **Account** and **Amount** fields are settlement-level fields.
 
 The Account is selected during **Finance Review**.
 
-The Amount is automatically populated from the available balance associated with the selected Account and is read-only.
+The Account must be an enabled expense ledger in the settlement company. The Amount mirrors the
+validated settlement total and is read-only. Account balances are not persisted on settlements.
 
 The settlement also receives an automatically generated PDF report after successful Treasurer processing.
+
+## Production prerequisites
+
+* ERPNext must be installed before this app.
+* Every Center Officer User must be linked through `Employee.user_id`.
+* Each Center Officer must have exactly one Petty Cash Configuration.
+* Configuration accounts and Cost Center must belong to the same company.
+* `Payment Account` must be an enabled Asset ledger using the company currency; this is the
+  Whish wallet or clearing account credited by the generated Journal Entry.
+* Receipts must be uploaded as private File records.
+
+Install and migrate on staging first. The integrity migration intentionally stops when it finds
+duplicate configurations, monthly Whish documents, or active monthly settlements, so those records
+can be reviewed instead of being silently discarded.
 
 ---
 

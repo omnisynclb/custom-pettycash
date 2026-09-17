@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from frappe.utils import get_first_day, getdate
 
 
 class PettyCashWhish(Document):
@@ -11,7 +12,9 @@ class PettyCashWhish(Document):
         if not self.month_and_year:
             frappe.throw("Month and Year is required.")
 
-        month = self.month_and_year.month
-        year = self.month_and_year.year
+        self.month_and_year = get_first_day(self.month_and_year)
+        value = getdate(self.month_and_year)
+        month = value.month
+        year = value.year
 
         self.name = f"PCW-{month:02d}-{year}"

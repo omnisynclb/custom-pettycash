@@ -1,0 +1,69 @@
+{
+ "actions": [],
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enable_monthly_reminders",
+  "reminder_day",
+  "whish_email",
+  "reminder_subject",
+  "reminder_message"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "enable_monthly_reminders",
+   "fieldtype": "Check",
+   "label": "Enable Monthly Reminders"
+  },
+  {
+   "default": "21",
+   "description": "Automatic reminders are sent on this day of each month.",
+   "fieldname": "reminder_day",
+   "fieldtype": "Int",
+   "label": "Reminder Day",
+   "reqd": 1
+  },
+  {
+   "description": "Receives the automatically generated monthly Whish Excel file.",
+   "fieldname": "whish_email",
+   "fieldtype": "Data",
+   "label": "Whish Email",
+   "options": "Email",
+   "reqd": 1
+  },
+  {
+   "default": "Monthly Petty Cash Request Reminder",
+   "fieldname": "reminder_subject",
+   "fieldtype": "Data",
+   "label": "Reminder Subject",
+   "reqd": 1
+  },
+  {
+   "default": "Please submit your petty cash request with all scanned invoices and receipts.",
+   "fieldname": "reminder_message",
+   "fieldtype": "Small Text",
+   "label": "Reminder Message",
+   "reqd": 1
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "module": "Center Expense Management",
+ "name": "Petty Cash Settings",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Finance",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

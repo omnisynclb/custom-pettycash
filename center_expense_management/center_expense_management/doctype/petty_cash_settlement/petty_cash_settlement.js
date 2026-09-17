@@ -55,7 +55,10 @@ frappe.ui.form.on('Petty Cash Settlement', {
         const return_actions = [
          'Return to Center Officer',
          'Return to Accountant',
-         'Return to Finance'
+         'Return to Finance',
+         'Return to Operations',
+         'Return to Director',
+         'Return to Treasurer'
         ];
 
        if (return_actions.includes(frm.selected_workflow_action)) {

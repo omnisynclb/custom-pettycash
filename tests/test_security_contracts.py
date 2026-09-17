@@ -89,6 +89,47 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		roles = {row["role"] for row in doctype["permissions"]}
 		self.assertIn("Finance", roles)
+		self.assertIn("Director", roles)
+		self.assertIn("Treasurer", roles)
+		self.assertIn("President", roles)
+
+	def test_workflow_reaches_president_before_completion(self):
+		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
+		forward = [
+			(row["state"], row["next_state"])
+			for row in workflow["transitions"]
+			if row["action"] in {
+				"Submit for Accountant Review", "Approve", "Approve as Director",
+				"Approve as Treasurer", "Final Approve",
+			}
+		]
+		self.assertEqual(
+			forward,
+			[
+				("Draft", "Pending Accountant Review"),
+				("Pending Accountant Review", "Pending Finance Review"),
+				("Pending Finance Review", "Pending Operations Approval"),
+				("Pending Operations Approval", "Pending Director Approval"),
+				("Pending Director Approval", "Pending Treasurer Approval"),
+				("Pending Treasurer Approval", "Pending President Approval"),
+				("Pending President Approval", "Completed"),
+			],
+		)
+
+	def test_settings_and_finance_cost_center_exist(self):
+		settings = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settings/petty_cash_settings.json"
+		)
+		self.assertTrue(settings["issingle"])
+		self.assertIn("whish_email", {field["fieldname"] for field in settings["fields"]})
+
+		expense = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_expense/petty_cash_expense.json"
+		)
+		cost_center = next(field for field in expense["fields"] if field["fieldname"] == "cost_center")
+		self.assertEqual(cost_center["permlevel"], 1)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

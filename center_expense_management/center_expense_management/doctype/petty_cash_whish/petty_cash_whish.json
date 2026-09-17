@@ -7,9 +7,23 @@
  "field_order": [
   "section_break_n7p2",
   "month_and_year",
-  "employees"
+  "employees",
+  "excel_file",
+  "excel_email_sent_on"
  ],
  "fields": [
+  {
+   "fieldname": "excel_file",
+   "fieldtype": "Attach",
+   "label": "Whish Excel File",
+   "read_only": 1
+  },
+  {
+   "fieldname": "excel_email_sent_on",
+   "fieldtype": "Datetime",
+   "label": "Excel Email Sent On",
+   "read_only": 1
+  },
   {
    "fieldname": "section_break_n7p2",
    "fieldtype": "Section Break"

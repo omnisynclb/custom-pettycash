@@ -1,7 +1,9 @@
 import frappe
 
 
-APPROVER_ROLES = {"System Manager", "Accountant", "Finance", "Operations", "Treasurer"}
+APPROVER_ROLES = {
+	"System Manager", "Accountant", "Finance", "Operations", "Director", "Treasurer", "President"
+}
 
 
 def _roles(user):

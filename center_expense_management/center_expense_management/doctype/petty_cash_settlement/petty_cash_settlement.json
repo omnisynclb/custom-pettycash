@@ -17,6 +17,9 @@
   "petty_cash_account",
   "payment_account",
   "company",
+  "whish_phone_number",
+  "whish_id",
+  "currency",
   "settlement_information_section",
   "petty_cash_limit",
   "total_expenses",
@@ -37,6 +40,28 @@
   ,"report_delivery_status"
  ],
  "fields": [
+  {
+   "fieldname": "whish_phone_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Whish Phone Number",
+   "read_only": 1
+  },
+  {
+   "fieldname": "whish_id",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Whish ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "Currency",
+   "options": "Currency",
+   "read_only": 1
+  },
   {
    "allow_on_submit": 1,
    "fieldname": "report_delivery_status",
@@ -289,8 +314,60 @@
    "print": 1,
    "read": 1,
    "report": 1,
+   "role": "Director",
+   "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
    "role": "Treasurer",
    "write": 1
+  },
+  {
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "President",
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Accountant"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Finance",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Operations"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Director"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Treasurer"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "President"
   }
  ],
  "row_format": "Dynamic",

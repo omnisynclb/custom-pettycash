@@ -66,6 +66,14 @@ class PettyCashSettlement(Document):
                 job_id=f"petty-cash-report-{self.name}",
                 settlement_name=self.name,
             )
+            frappe.enqueue(
+                "center_expense_management.tasks.generate_and_email_whish_excel",
+                queue="short",
+                enqueue_after_commit=True,
+                deduplicate=True,
+                job_id=f"petty-cash-whish-{self.name}",
+                payment_date=self.payment_date,
+            )
 
     def on_cancel(self):
         self.cancel_payment_artifacts()
@@ -92,13 +100,26 @@ class PettyCashSettlement(Document):
         previous_state = before.workflow_state or "Draft"
         allowed = BUSINESS_FIELDS if previous_state == "Draft" else set()
         if previous_state == "Pending Finance Review":
-            allowed = {"account", "report_email"}
+            allowed = {"account", "report_email", "expenses"}
+            if self.has_value_changed("expenses"):
+                self.validate_finance_expense_changes(before)
 
         changed = {field for field in BUSINESS_FIELDS if self.has_value_changed(field)}
         forbidden = changed - allowed
         if forbidden:
             labels = ", ".join(sorted(self.meta.get_label(field) for field in forbidden))
             frappe.throw(f"These fields cannot be changed during {previous_state}: {labels}.")
+
+    def validate_finance_expense_changes(self, before):
+        if len(before.expenses) != len(self.expenses):
+            frappe.throw("Finance may assign Cost Centers but cannot add or remove expenses.")
+
+        protected = ("name", "expense_item", "expense_date", "invoice_number", "supplier", "related_details", "amount", "receipt")
+        previous_rows = {row.name: row for row in before.expenses}
+        for row in self.expenses:
+            old = previous_rows.get(row.name)
+            if not old or any(old.get(field) != row.get(field) for field in protected):
+                frappe.throw("Finance may only change the Cost Center on an expense row.")
 
 
     def validate_finance_account(self):
@@ -128,6 +149,11 @@ class PettyCashSettlement(Document):
             if not self.report_email:
                 frappe.throw("Report Email is required before Finance approval.")
             validate_email_address(self.report_email, throw=True)
+            for expense in self.expenses:
+                if not expense.cost_center:
+                    frappe.throw(f"Finance must assign a Cost Center to expense row {expense.idx}.")
+                if frappe.db.get_value("Cost Center", expense.cost_center, "company") != self.company:
+                    frappe.throw(f"Expense row {expense.idx}: Cost Center must belong to {self.company}.")
 
     def validate_center_officer_and_month(self):
         if not self.center_officer or not self.month:
@@ -191,10 +217,10 @@ class PettyCashSettlement(Document):
                 "employee_name": employee.employee_name,
                 "employee": employee.name,
                 "settlement": self.name,
-                "phone_number": None,
-                "whish_id": None,
+                "phone_number": self.whish_phone_number,
+                "whish_id": self.whish_id,
                 "salary_received_net": self.total_expenses,
-                "currency": frappe.db.get_value("Company", self.company, "default_currency"),
+                "currency": self.currency,
             }
         )
 
@@ -209,7 +235,10 @@ class PettyCashSettlement(Document):
         config = frappe.db.get_value(
             "Petty Cash Configuration",
             {"center_officer": self.center_officer},
-            ["cost_center", "petty_cash_account", "payment_account", "petty_cash_limit"],
+            [
+                "cost_center", "petty_cash_account", "payment_account", "petty_cash_limit",
+                "whish_phone_number", "whish_id", "currency",
+            ],
             as_dict=True
         )
 
@@ -223,6 +252,9 @@ class PettyCashSettlement(Document):
         self.payment_account = config.payment_account
         self.petty_cash_limit = config.petty_cash_limit
         self.company = frappe.db.get_value("Cost Center", config.cost_center, "company")
+        self.whish_phone_number = config.whish_phone_number
+        self.whish_id = config.whish_id
+        self.currency = config.currency
 
     @frappe.whitelist()
     def load_account_balance(self):
@@ -298,8 +330,8 @@ class PettyCashSettlement(Document):
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
     def create_whish_journal_entry(self):
-        if frappe.session.user != "Administrator" and "Treasurer" not in frappe.get_roles():
-            frappe.throw("Only Treasurer may complete a settlement payment.", frappe.PermissionError)
+        if frappe.session.user != "Administrator" and "President" not in frappe.get_roles():
+            frappe.throw("Only President may complete final approval and payment.", frappe.PermissionError)
         if self.payment_status == "Paid":
             frappe.throw(
                 "This Petty Cash Settlement has already been paid."
@@ -379,14 +411,23 @@ class PettyCashSettlement(Document):
             f"Petty Cash Settlement {self.name}"
         )
 
-        journal_entry.append(
-            "accounts",
-            {
-                "account": self.account,
-                "debit_in_account_currency": self.total_expenses,
-                "cost_center": self.cost_center
-            }
-        )
+        totals_by_cost_center = {}
+        for expense in self.expenses:
+            if frappe.db.get_value("Cost Center", expense.cost_center, "company") != company:
+                frappe.throw(f"Expense row {expense.idx}: Cost Center belongs to a different company.")
+            totals_by_cost_center[expense.cost_center] = (
+                totals_by_cost_center.get(expense.cost_center, 0) + flt(expense.amount)
+            )
+
+        for cost_center, amount in totals_by_cost_center.items():
+            journal_entry.append(
+                "accounts",
+                {
+                    "account": self.account,
+                    "debit_in_account_currency": amount,
+                    "cost_center": cost_center,
+                },
+            )
 
         journal_entry.append(
             "accounts",
@@ -743,6 +784,9 @@ class PettyCashSettlement(Document):
             "Return to Center Officer": ("Pending Accountant Review", "Accountant"),
             "Return to Accountant": ("Pending Finance Review", "Finance"),
             "Return to Finance": ("Pending Operations Approval", "Operations"),
+            "Return to Operations": ("Pending Director Approval", "Director"),
+            "Return to Director": ("Pending Treasurer Approval", "Treasurer"),
+            "Return to Treasurer": ("Pending President Approval", "President"),
         }
         if action not in allowed_actions:
             frappe.throw("Invalid return action.")

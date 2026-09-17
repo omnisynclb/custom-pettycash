@@ -39,3 +39,5 @@ class PettyCashConfiguration(Document):
 		company_currency = frappe.db.get_value("Company", company, "default_currency")
 		if payment_account.account_currency != company_currency:
 			frappe.throw("Payment Account must use the company currency.")
+		if self.currency != company_currency:
+			frappe.throw("Whish Currency must match the company currency.")

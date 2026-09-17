@@ -10,9 +10,53 @@
   "cost_center",
   "petty_cash_account",
   "payment_account",
-  "petty_cash_limit"
+  "petty_cash_limit",
+  "reminder_email",
+  "whish_phone_number",
+  "whish_id",
+  "currency",
+  "last_reminder_month",
+  "reminder_sent_on"
  ],
  "fields": [
+  {
+   "fieldname": "whish_phone_number",
+   "fieldtype": "Data",
+   "label": "Whish Phone Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "whish_id",
+   "fieldtype": "Data",
+   "label": "Whish ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Whish Currency",
+   "options": "Currency",
+   "reqd": 1
+  },
+  {
+   "description": "Defaults to the email of the User linked to the Employee.",
+   "fieldname": "reminder_email",
+   "fieldtype": "Data",
+   "label": "Reminder Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "last_reminder_month",
+   "fieldtype": "Data",
+   "label": "Last Reminder Month",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reminder_sent_on",
+   "fieldtype": "Datetime",
+   "label": "Reminder Sent On",
+   "read_only": 1
+  },
   {
    "description": "Whish wallet or clearing account credited when a settlement is paid.",
    "fieldname": "payment_account",

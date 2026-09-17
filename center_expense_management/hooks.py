@@ -8,7 +8,7 @@ app_license = "mit"
 fixtures = [
     {
         "dt": "Role",
-        "filters": [["name", "in", ["Center Officer", "Accountant", "Finance", "Operations", "Treasurer"]]],
+        "filters": [["name", "in", ["Center Officer", "Accountant", "Finance", "Operations", "Director", "Treasurer", "President"]]],
     },
     {
         "dt": "Workflow",
@@ -29,7 +29,8 @@ has_permission = {
 }
 scheduler_events = {
     "daily": [
-        "center_expense_management.tasks.create_monthly_petty_cash_whish"
+        "center_expense_management.tasks.create_monthly_petty_cash_whish",
+        "center_expense_management.tasks.send_monthly_reminders",
     ]
 }
 # Apps

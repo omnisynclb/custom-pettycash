@@ -11,11 +11,20 @@
   "expense_date",
   "invoice_number",
   "supplier",
+  "cost_center",
   "related_details",
   "amount",
   "receipt"
  ],
  "fields": [
+  {
+   "description": "Assigned by Finance before approval.",
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center",
+   "permlevel": 1
+  },
   {
    "fieldname": "section_break_280q",
    "fieldtype": "Section Break"

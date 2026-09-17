@@ -7,10 +7,6 @@ app_license = "mit"
 
 fixtures = [
     {
-        "dt": "Role",
-        "filters": [["name", "in", ["Center Officer", "Accountant", "Finance", "Operations", "Director", "Treasurer", "President"]]],
-    },
-    {
         "dt": "Workflow",
         "filters": [
             ["name", "=", "Petty Cash Settlement Workflow"]
@@ -18,7 +14,7 @@ fixtures = [
     }
 ]
 
-required_apps = ["erpnext"]
+required_apps = ["erpnext", "custom_lsa"]
 
 permission_query_conditions = {
     "Petty Cash Settlement": "center_expense_management.permissions.settlement_query_condition",

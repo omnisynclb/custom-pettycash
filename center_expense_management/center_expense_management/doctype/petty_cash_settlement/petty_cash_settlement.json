@@ -286,49 +286,49 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Center Officer",
+   "role": "LSA Center Officer",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Accountant",
+   "role": "LSA Accountant",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Finance",
+   "role": "LSA Finance Approver",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Operations",
+   "role": "LSA Operations Manager",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Director",
+   "role": "LSA Executive Director",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "Treasurer",
+   "role": "LSA Board Treasurer",
    "write": 1
   },
   {
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "President",
+   "role": "LSA President",
    "submit": 1,
    "write": 1
   },
@@ -341,33 +341,33 @@
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Accountant"
+   "role": "LSA Accountant"
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Finance",
+   "role": "LSA Finance Approver",
    "write": 1
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Operations"
+   "role": "LSA Operations Manager"
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Director"
+   "role": "LSA Executive Director"
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "Treasurer"
+   "role": "LSA Board Treasurer"
   },
   {
    "permlevel": 1,
    "read": 1,
-   "role": "President"
+   "role": "LSA President"
   }
  ],
  "row_format": "Dynamic",

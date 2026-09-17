@@ -6,13 +6,13 @@ and accounting entries.
 ## Workflow
 
 ```text
-Center Officer
-  -> Accountant
-  -> Finance
-  -> Operations
-  -> Director
-  -> Treasurer
-  -> President
+LSA Center Officer
+  -> LSA Accountant
+  -> LSA Finance Approver
+  -> LSA Operations Manager
+  -> LSA Executive Director
+  -> LSA Board Treasurer
+  -> LSA President
   -> Completed / automatic payment processing
 ```
 
@@ -98,7 +98,8 @@ Whish row.
 
 ## Installation
 
-ERPNext is a required app. Install on an isolated staging site first:
+ERPNext and the production `custom_lsa` app are required. This app deliberately reuses the existing
+LSA roles instead of installing duplicate generic roles. Install on an isolated staging site first:
 
 ```bash
 bench get-app <repository-url> --branch production-hardening
@@ -114,7 +115,9 @@ After migration:
 
 1. Configure **Petty Cash Settings**.
 2. Update every **Petty Cash Configuration**, including payment and Whish fields.
-3. Assign the packaged roles to separate users.
+3. Assign the existing production LSA roles to separate users.
+   The workflow uses `LSA Center Officer`, `LSA Accountant`, `LSA Finance Approver`,
+   `LSA Operations Manager`, `LSA Executive Director`, `LSA Board Treasurer`, and `LSA President`.
 4. Confirm outgoing email and workers/scheduler are enabled.
 5. Exercise the full workflow in staging and compare the Journal Entry with the approved accounting
    policy before production deployment.

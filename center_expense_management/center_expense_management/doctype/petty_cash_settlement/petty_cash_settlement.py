@@ -258,7 +258,7 @@ class PettyCashSettlement(Document):
 
     @frappe.whitelist()
     def load_account_balance(self):
-        if "Finance" not in frappe.get_roles() and "System Manager" not in frappe.get_roles():
+        if "LSA Finance Approver" not in frappe.get_roles() and "System Manager" not in frappe.get_roles():
            frappe.throw("Only Finance may select and inspect the settlement account.", frappe.PermissionError)
 
         if self.workflow_state != "Pending Finance Review":
@@ -330,7 +330,7 @@ class PettyCashSettlement(Document):
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
     def create_whish_journal_entry(self):
-        if frappe.session.user != "Administrator" and "President" not in frappe.get_roles():
+        if frappe.session.user != "Administrator" and "LSA President" not in frappe.get_roles():
             frappe.throw("Only President may complete final approval and payment.", frappe.PermissionError)
         if self.payment_status == "Paid":
             frappe.throw(
@@ -781,12 +781,12 @@ class PettyCashSettlement(Document):
     @frappe.whitelist()
     def add_return_comment(self, reason, action):
         allowed_actions = {
-            "Return to Center Officer": ("Pending Accountant Review", "Accountant"),
-            "Return to Accountant": ("Pending Finance Review", "Finance"),
-            "Return to Finance": ("Pending Operations Approval", "Operations"),
-            "Return to Operations": ("Pending Director Approval", "Director"),
-            "Return to Director": ("Pending Treasurer Approval", "Treasurer"),
-            "Return to Treasurer": ("Pending President Approval", "President"),
+            "Return to Center Officer": ("Pending Accountant Review", "LSA Accountant"),
+            "Return to Accountant": ("Pending Finance Review", "LSA Finance Approver"),
+            "Return to Finance": ("Pending Operations Approval", "LSA Operations Manager"),
+            "Return to Operations": ("Pending Director Approval", "LSA Executive Director"),
+            "Return to Director": ("Pending Treasurer Approval", "LSA Board Treasurer"),
+            "Return to Treasurer": ("Pending President Approval", "LSA President"),
         }
         if action not in allowed_actions:
             frappe.throw("Invalid return action.")

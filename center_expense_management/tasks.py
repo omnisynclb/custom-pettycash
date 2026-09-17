@@ -41,7 +41,7 @@ def generate_and_email_settlement_report(settlement_name):
 @frappe.whitelist()
 def send_monthly_reminders(force=0):
     force = cint(force)
-    if force and not ({"Finance", "System Manager"} & set(frappe.get_roles())):
+    if force and not ({"LSA Finance Approver", "System Manager"} & set(frappe.get_roles())):
         frappe.throw("Only Finance or System Manager may send reminders.", frappe.PermissionError)
 
     settings = frappe.get_single("Petty Cash Settings")

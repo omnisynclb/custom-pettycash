@@ -2,7 +2,13 @@ import frappe
 
 
 APPROVER_ROLES = {
-	"System Manager", "Accountant", "Finance", "Operations", "Director", "Treasurer", "President"
+	"System Manager",
+	"LSA Accountant",
+	"LSA Finance Approver",
+	"LSA Operations Manager",
+	"LSA Executive Director",
+	"LSA Board Treasurer",
+	"LSA President",
 }
 
 
@@ -37,7 +43,7 @@ def settlement_has_permission(doc, user=None, permission_type=None):
 	if can_review_all(user):
 		return True
 
-	if "Center Officer" not in _roles(user):
+	if "LSA Center Officer" not in _roles(user):
 		return False
 	if permission_type == "create":
 		return True

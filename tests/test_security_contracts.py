@@ -199,6 +199,30 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertNotIn("custom_lsa_payroll_journal_approval", controller)
 		self.assertNotIn("custom_lsa_monthly_payroll_approval", controller)
 
+	def test_professional_configuration_naming_and_whish_workspace_link(self):
+		configuration = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_configuration/petty_cash_configuration.json"
+		)
+		self.assertEqual(configuration["autoname"], "format:PCC-{center_officer}")
+
+		sidebar = self.load_json(
+			"center_expense_management/center_expense_management/workspace_sidebar/"
+			"petty_cash/petty_cash.json"
+		)
+		whish_links = [
+			item for item in sidebar["items"]
+			if item.get("link_to") == "Petty Cash Whish"
+		]
+		self.assertEqual(len(whish_links), 1)
+
+		whish = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_whish/petty_cash_whish.json"
+		)
+		roles = {permission["role"] for permission in whish["permissions"]}
+		self.assertIn("LSA Finance Approver", roles)
+
 	def test_production_app_dependency_is_declared(self):
 		hooks = (ROOT / "center_expense_management/hooks.py").read_text()
 		self.assertIn('required_apps = ["erpnext", "custom_lsa"]', hooks)

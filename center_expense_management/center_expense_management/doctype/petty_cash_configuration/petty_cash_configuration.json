@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "format:PCC-{center_officer}",
  "creation": "2026-08-30 16:46:03.305201",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -109,6 +110,7 @@
  "modified_by": "Administrator",
  "module": "Center Expense Management",
  "name": "Petty Cash Configuration",
+ "naming_rule": "Expression",
  "owner": "Administrator",
  "permissions": [
   {

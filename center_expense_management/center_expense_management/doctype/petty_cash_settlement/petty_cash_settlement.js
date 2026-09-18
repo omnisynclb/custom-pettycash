@@ -16,7 +16,6 @@ frappe.ui.form.on('Petty Cash Settlement', {
             return {
                 filters: {
                     company: frm.doc.company,
-                    root_type: 'Expense',
                     is_group: 0,
                     disabled: 0
                 }

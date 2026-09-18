@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from erpnext.accounts.utils import get_balance_on
 from frappe.model.document import Document
-from frappe.utils import cint, escape_html, flt, formatdate, validate_email_address
+from frappe.utils import cint, cstr, escape_html, flt, formatdate, validate_email_address
 from frappe.utils.pdf import get_pdf
 
 from center_expense_management.permissions import can_review_all, employee_for_user
@@ -27,13 +27,11 @@ BUSINESS_FIELDS = {
 }
 
 EXPENSE_BUSINESS_FIELDS = (
-    "name",
     "expense_item",
     "expense_date",
     "invoice_number",
     "supplier",
     "related_details",
-    "amount",
     "receipt",
 )
 
@@ -173,14 +171,19 @@ class PettyCashSettlement(Document):
             return True
 
         current_rows = [
-            tuple(row.get(field) for field in EXPENSE_BUSINESS_FIELDS)
+            self.expense_business_values(row)
             for row in self.expenses
         ]
         previous_rows = [
-            tuple(row.get(field) for field in EXPENSE_BUSINESS_FIELDS)
+            self.expense_business_values(row)
             for row in before.expenses
         ]
         return current_rows != previous_rows
+
+    @staticmethod
+    def expense_business_values(row):
+        values = tuple(cstr(row.get(field) or "") for field in EXPENSE_BUSINESS_FIELDS)
+        return values + (flt(row.amount),)
 
     def validate_finance_account(self):
         if self.account:
@@ -188,10 +191,9 @@ class PettyCashSettlement(Document):
             if (
                 account.is_group
                 or account.disabled
-                or account.root_type != "Expense"
                 or account.company != self.company
             ):
-                frappe.throw("Finance Account must be an enabled Expense ledger account for this company.")
+                frappe.throw("Finance Account must be an enabled ledger account for this company.")
 
         if not self._doc_before_save:
             return
@@ -333,8 +335,8 @@ class PettyCashSettlement(Document):
                _("Please select a ledger account, not an account group.")
            )
 
-        if account.disabled or account.company != self.company or account.root_type != "Expense":
-           frappe.throw(_("Select an enabled Expense ledger account for {0}.").format(self.company))
+        if account.disabled or account.company != self.company:
+           frappe.throw(_("Select an enabled ledger account for {0}.").format(self.company))
 
         # Do not persist or disclose an unrelated ledger balance through the settlement.
         return get_balance_on(
@@ -450,12 +452,12 @@ class PettyCashSettlement(Document):
                 f"Account {self.account} does not belong to Company {company}."
             )
 
-        expense_account = frappe.get_cached_doc("Account", self.account)
-        if expense_account.is_group or expense_account.disabled or expense_account.root_type != "Expense":
-            frappe.throw("The Finance Account must be an enabled Expense ledger account.")
+        finance_account = frappe.get_cached_doc("Account", self.account)
+        if finance_account.is_group or finance_account.disabled:
+            frappe.throw("The Finance Account must be an enabled ledger account.")
 
         company_currency = frappe.db.get_value("Company", company, "default_currency")
-        if expense_account.account_currency != company_currency or whish_account.account_currency != company_currency:
+        if finance_account.account_currency != company_currency or whish_account.account_currency != company_currency:
             frappe.throw("Settlement accounts must use the company currency.")
 
         journal_entry = frappe.new_doc("Journal Entry")

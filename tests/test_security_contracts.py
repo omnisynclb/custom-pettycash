@@ -154,6 +154,19 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		self.assertIn("cost_center", {field["fieldname"] for field in settlement["fields"]})
 
+		configuration_controller = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_configuration/petty_cash_configuration.py"
+		).read_text()
+		self.assertIn("cost_center.is_group", configuration_controller)
+		self.assertIn("non-group Cost Center", configuration_controller)
+
+		configuration_client = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_configuration/petty_cash_configuration.js"
+		).read_text()
+		self.assertIn("is_group: 0", configuration_client)
+
 	def test_month_and_year_fields_and_expense_grid_defaults(self):
 		settlement = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"

@@ -21,6 +21,15 @@ frappe.ui.form.on('Petty Cash Settlement', {
                 }
             };
         });
+        frm.set_query('cost_center', function() {
+            return {
+                filters: {
+                    company: frm.doc.company,
+                    is_group: 0,
+                    disabled: 0
+                }
+            };
+        });
     },
     center_officer: function(frm) {
         load_petty_cash_configuration(frm);

@@ -372,6 +372,27 @@ class PettyCashSettlement(Document):
                 "Payment Method must be Whish."
             )
 
+        configured_cost_center = frappe.db.get_value(
+            "Petty Cash Configuration",
+            {"center_officer": self.center_officer},
+            "cost_center",
+        )
+        if configured_cost_center and configured_cost_center != self.cost_center:
+            self.cost_center = configured_cost_center
+            self.db_set("cost_center", configured_cost_center, update_modified=False)
+
+        cost_center = frappe.db.get_value(
+            "Cost Center",
+            self.cost_center,
+            ["company", "is_group", "disabled"],
+            as_dict=True,
+        )
+        if not cost_center or cost_center.is_group or cost_center.disabled:
+            frappe.throw(
+                "Update Petty Cash Configuration with an enabled non-group Cost Center "
+                "before final approval. Group Cost Centers cannot be used in Journal Entries."
+            )
+
         self.payment_date = frappe.utils.today()
         self.db_set("payment_date", self.payment_date)
 
@@ -393,13 +414,7 @@ class PettyCashSettlement(Document):
 
         company = whish_account.company
 
-        cost_center_company = frappe.db.get_value(
-            "Cost Center",
-            self.cost_center,
-            "company"
-        )
-
-        if cost_center_company != company:
+        if cost_center.company != company:
             frappe.throw(
                 "The Cost Center and Whish account belong to different companies."
             )

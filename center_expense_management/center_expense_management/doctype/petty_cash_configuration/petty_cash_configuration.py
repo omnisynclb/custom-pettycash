@@ -11,6 +11,10 @@ class PettyCashConfiguration(Document):
 		if flt(self.petty_cash_limit) <= 0:
 			frappe.throw("Petty Cash Limit must be greater than zero.")
 
+		cost_center = frappe.get_cached_doc("Cost Center", self.cost_center)
+		if cost_center.is_group or cost_center.disabled:
+			frappe.throw("Cost Center must be an enabled non-group Cost Center that can be used in transactions.")
+
 		duplicate = frappe.db.exists(
 			"Petty Cash Configuration",
 			{"center_officer": self.center_officer, "name": ["!=", self.name]},
@@ -19,7 +23,7 @@ class PettyCashConfiguration(Document):
 			frappe.throw("Only one Petty Cash Configuration is allowed per Center Officer.")
 
 		companies = {
-			frappe.db.get_value("Cost Center", self.cost_center, "company"),
+			cost_center.company,
 			frappe.db.get_value("Account", self.petty_cash_account, "company"),
 			frappe.db.get_value("Account", self.payment_account, "company"),
 		}

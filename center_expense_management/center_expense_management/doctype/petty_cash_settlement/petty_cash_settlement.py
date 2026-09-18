@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from erpnext.accounts.utils import get_balance_on
 from frappe.model.document import Document
-from frappe.utils import escape_html, flt, formatdate, validate_email_address
+from frappe.utils import cint, escape_html, flt, formatdate, validate_email_address
 from frappe.utils.pdf import get_pdf
 
 from center_expense_management.permissions import can_review_all, employee_for_user
@@ -17,12 +17,19 @@ from center_expense_management.permissions import can_review_all, employee_for_u
 BUSINESS_FIELDS = {
     "center_officer",
     "month",
+    "month_name",
+    "settlement_year",
     "settlement_month",
     "expenses",
     "account",
     "payment_method",
     "report_email",
 }
+
+MONTH_NAMES = (
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)
 
 
 class PettyCashSettlement(Document):
@@ -56,15 +63,27 @@ class PettyCashSettlement(Document):
             self.payment_method = "Whish"
 
     def set_settlement_month(self):
-        value = (self.settlement_month or "").strip()
-        if not value and self.month:
+        value = None
+        if self.month_name and self.settlement_year:
+            if self.month_name not in MONTH_NAMES:
+                frappe.throw("Select a valid settlement month.")
+            year = cint(self.settlement_year)
+            if not 2000 <= year <= 2100:
+                frappe.throw("Settlement Year must be between 2000 and 2100.")
+            value = f"{year:04d}-{MONTH_NAMES.index(self.month_name) + 1:02d}"
+        elif self.settlement_month:
+            value = self.settlement_month.strip()
+        elif self.month:
             value = frappe.utils.getdate(self.month).strftime("%Y-%m")
 
-        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
-            frappe.throw("Month must use YYYY-MM format.")
+        if not value or not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+            frappe.throw("Month and Year are required.")
 
         self.settlement_month = value
         self.month = frappe.utils.get_first_day(f"{value}-01")
+        selected = frappe.utils.getdate(self.month)
+        self.month_name = MONTH_NAMES[selected.month - 1]
+        self.settlement_year = selected.year
         self.active_month_key = (
             f"{self.center_officer}:{self.settlement_month}" if self.docstatus != 2 else None
         )

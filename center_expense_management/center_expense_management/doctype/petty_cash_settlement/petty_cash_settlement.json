@@ -9,6 +9,9 @@
   "section_break_1oge",
   "amended_from",
   "center_officer",
+  "month_name",
+  "month_column_break",
+  "settlement_year",
   "settlement_month",
   "month",
   "active_month_key",
@@ -36,10 +39,29 @@
   "payment_date",
   "journal_entry",
   "payment_status",
-  "report_email"
-  ,"report_delivery_status"
+  "report_email",
+  "report_delivery_status"
  ],
  "fields": [
+  {
+   "fieldname": "month_column_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "month_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Month",
+   "options": "\nJanuary\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember",
+   "reqd": 1
+  },
+  {
+   "fieldname": "settlement_year",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Year",
+   "reqd": 1
+  },
   {
    "fieldname": "whish_phone_number",
    "fieldtype": "Data",
@@ -80,10 +102,9 @@
   {
    "fieldname": "settlement_month",
    "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Month",
-   "description": "Select the settlement month and year.",
-   "reqd": 1
+   "hidden": 1,
+   "label": "Settlement Month",
+   "read_only": 1
   },
   {
    "fieldname": "payment_account",

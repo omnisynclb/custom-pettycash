@@ -1,4 +1,16 @@
 frappe.ui.form.on('Petty Cash Settlement', {
+    onload: function(frm) {
+        if (frm.is_new() && (!frm.doc.month_name || !frm.doc.settlement_year)) {
+            const today = frappe.datetime.get_today().split('-');
+            const months = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            frm.set_value('month_name', months[cint(today[1]) - 1]);
+            frm.set_value('settlement_year', cint(today[0]));
+        }
+    },
+
     setup: function(frm) {
         frm.set_query('account', function() {
             return {
@@ -15,10 +27,12 @@ frappe.ui.form.on('Petty Cash Settlement', {
         load_petty_cash_configuration(frm);
     },
 
-    settlement_month: function(frm) {
-        if (/^\d{4}-(0[1-9]|1[0-2])$/.test(frm.doc.settlement_month || '')) {
-            frm.set_value('month', `${frm.doc.settlement_month}-01`);
-        }
+    month_name: function(frm) {
+        sync_settlement_month(frm);
+    },
+
+    settlement_year: function(frm) {
+        sync_settlement_month(frm);
     },
 
     petty_cash_limit: function(frm) {
@@ -28,12 +42,6 @@ frappe.ui.form.on('Petty Cash Settlement', {
     refresh: function(frm) {
         calculate_totals(frm);
         configure_payment_information(frm);
-
-        const month_input = frm.fields_dict.settlement_month.$input;
-        if (month_input) {
-            month_input.attr('type', 'month');
-            month_input.attr('placeholder', 'YYYY-MM');
-        }
 
         frm.set_df_property(
             'account',
@@ -201,6 +209,21 @@ function configure_payment_information(frm) {
     frm.toggle_display('payment_information_section', visible_states.includes(state));
     frm.set_df_property('payment_method', 'read_only', !finance_can_edit);
     frm.set_df_property('report_email', 'read_only', !finance_can_edit);
+}
+
+function sync_settlement_month(frm) {
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    const month_number = months.indexOf(frm.doc.month_name) + 1;
+    const year = cint(frm.doc.settlement_year);
+
+    if (month_number > 0 && year >= 2000 && year <= 2100) {
+        const value = `${year}-${String(month_number).padStart(2, '0')}`;
+        frm.set_value('settlement_month', value);
+        frm.set_value('month', `${value}-01`);
+    }
 }
 
 frappe.ui.form.on('Petty Cash Expense', {

@@ -1,6 +1,9 @@
+from io import BytesIO
+
 import frappe
 from frappe.utils import cint, get_first_day, getdate, now_datetime, today
-from frappe.utils.xlsxutils import make_xlsx
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 
 def create_monthly_petty_cash_whish():
@@ -34,16 +37,6 @@ def get_or_create_monthly_petty_cash_whish(month):
         )
 
     return whish.name
-
-
-def generate_and_email_settlement_report(settlement_name):
-    settlement = frappe.get_doc("Petty Cash Settlement", settlement_name)
-    if settlement.docstatus != 1 or settlement.payment_status != "Paid":
-        frappe.throw("Only a paid, submitted settlement can be reported.")
-
-    file_name = settlement.generate_pdf_report()
-    settlement.send_pdf_report_by_email(file_name)
-    settlement.db_set("report_delivery_status", "Sent")
 
 
 @frappe.whitelist()
@@ -116,25 +109,35 @@ def generate_and_email_whish_excel(payment_date):
         frappe.throw("Whish Email must be configured in Petty Cash Settings.")
 
     whish = frappe.get_doc("Petty Cash Whish", whish_name)
-    rows = [["Employee ID", "Name", "Phone Number", "Whish ID", "Amount", "Currency", "Settlement"]]
-    for row in whish.employees:
+    rows = [[
+        "Number",
+        "NAME",
+        "Phone Number",
+        "Whish ID",
+        "Salary received by the employee ( NET)",
+        "Currency",
+    ]]
+    for number, row in enumerate(whish.employees, start=1):
         rows.append([
-            _safe_excel_value(row.employee),
+            number,
             _safe_excel_value(row.employee_name),
             _safe_excel_value(row.phone_number),
             _safe_excel_value(row.whish_id),
             row.salary_received_net,
             _safe_excel_value(row.currency),
-            _safe_excel_value(row.settlement),
         ])
 
-    content = make_xlsx(rows, "Petty Cash Whish").getvalue()
-    old_file = frappe.db.get_value(
+    content = _make_whish_excel(rows)
+    old_files = frappe.get_all(
         "File",
-        {"attached_to_doctype": "Petty Cash Whish", "attached_to_name": whish.name, "file_name": f"{whish.name}.xlsx"},
-        "name",
+        filters={
+            "attached_to_doctype": "Petty Cash Whish",
+            "attached_to_name": whish.name,
+            "file_name": ["like", "%.xlsx"],
+        },
+        pluck="name",
     )
-    if old_file:
+    for old_file in old_files:
         frappe.delete_doc("File", old_file, ignore_permissions=True)
 
     file_doc = frappe.get_doc({
@@ -162,3 +165,38 @@ def _safe_excel_value(value):
     if isinstance(value, str) and value.startswith(("=", "+", "-", "@")):
         return "'" + value
     return value or ""
+
+
+def _make_whish_excel(rows):
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Whish"
+
+    for row in rows:
+        sheet.append(row)
+
+    header_fill = PatternFill("solid", fgColor="9DC3E6")
+    thin = Side(style="thin", color="000000")
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+
+    for cell in sheet[1]:
+        cell.fill = header_fill
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    for row in sheet.iter_rows():
+        for cell in row:
+            cell.border = border
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    for cell in sheet["E"][1:]:
+        cell.number_format = "#,##0.00"
+
+    widths = {"A": 12, "B": 30, "C": 18, "D": 18, "E": 38, "F": 14}
+    for column, width in widths.items():
+        sheet.column_dimensions[column].width = width
+
+    sheet.freeze_panes = "A2"
+    output = BytesIO()
+    workbook.save(output)
+    return output.getvalue()

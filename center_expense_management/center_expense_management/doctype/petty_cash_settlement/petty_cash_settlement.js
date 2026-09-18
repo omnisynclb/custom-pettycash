@@ -222,7 +222,6 @@ function configure_payment_information(frm) {
 
     frm.toggle_display('payment_information_section', visible_states.includes(state));
     frm.set_df_property('payment_method', 'read_only', !finance_can_edit);
-    frm.set_df_property('report_email', 'read_only', !finance_can_edit);
 }
 
 function sync_settlement_month(frm) {

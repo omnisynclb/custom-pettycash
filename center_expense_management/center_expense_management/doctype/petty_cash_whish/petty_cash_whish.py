@@ -17,4 +17,4 @@ class PettyCashWhish(Document):
         month = value.month
         year = value.year
 
-        self.name = f"PCW-{month:02d}-{year}"
+        self.name = f"WHISH-{year}-{month:02d}"

@@ -38,9 +38,7 @@
   "payment_method",
   "payment_date",
   "journal_entry",
-  "payment_status",
-  "report_email",
-  "report_delivery_status"
+  "payment_status"
  ],
  "fields": [
   {
@@ -82,14 +80,6 @@
    "hidden": 1,
    "label": "Currency",
    "options": "Currency",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "report_delivery_status",
-   "fieldtype": "Select",
-   "label": "Report Delivery Status",
-   "options": "\nQueued\nSent",
    "read_only": 1
   },
   {
@@ -251,12 +241,6 @@
    "label": "Payment Status",
    "options": "Unpaid\nPaid",
    "read_only": 1
-  },
-  {
-   "fieldname": "report_email",
-   "fieldtype": "Data",
-   "label": "Report Email",
-   "options": "Email"
   },
   {
    "fieldname": "expense_account_section",

@@ -23,7 +23,6 @@ BUSINESS_FIELDS = {
     "expenses",
     "account",
     "payment_method",
-    "report_email",
 }
 
 EXPENSE_BUSINESS_FIELDS = (
@@ -57,16 +56,12 @@ class PettyCashSettlement(Document):
         if self.workflow_state == "Completed":
             if self.payment_method != "Whish":
                 frappe.throw("Payment Method must be Whish before completion.")
-            if not self.report_email:
-                frappe.throw("Report Email is required before completion.")
-            validate_email_address(self.report_email, throw=True)
 
     def protect_initial_finance_fields(self):
         if not self.is_new() or frappe.session.user == "Administrator":
             return
         if "LSA Finance Approver" not in frappe.get_roles():
             self.account = None
-            self.report_email = None
             self.payment_method = "Whish"
 
     def set_settlement_month(self):
@@ -101,15 +96,6 @@ class PettyCashSettlement(Document):
             and self.has_value_changed("workflow_state")
         ):
             self.create_whish_journal_entry()
-            self.db_set("report_delivery_status", "Queued")
-            frappe.enqueue(
-                "center_expense_management.tasks.generate_and_email_settlement_report",
-                queue="short",
-                enqueue_after_commit=True,
-                deduplicate=True,
-                job_id=f"petty-cash-report-{self.name}",
-                settlement_name=self.name,
-            )
             frappe.enqueue(
                 "center_expense_management.tasks.generate_and_email_whish_excel",
                 queue="short",
@@ -143,12 +129,12 @@ class PettyCashSettlement(Document):
 
         previous_state = before.workflow_state or "Draft"
         allowed = (
-            BUSINESS_FIELDS - {"account", "payment_method", "report_email"}
+            BUSINESS_FIELDS - {"account", "payment_method"}
             if previous_state == "Draft"
             else set()
         )
         if previous_state == "Pending Finance Review":
-            allowed = {"account", "payment_method", "report_email"}
+            allowed = {"account", "payment_method"}
 
         changed = {
             field
@@ -206,9 +192,6 @@ class PettyCashSettlement(Document):
                 frappe.throw("Finance must select an Account before approving the settlement.")
             if self.payment_method != "Whish":
                 frappe.throw("Payment Method must be Whish before Finance approval.")
-            if not self.report_email:
-                frappe.throw("Report Email is required before Finance approval.")
-            validate_email_address(self.report_email, throw=True)
 
     def validate_center_officer_and_month(self):
         if not self.center_officer or not self.month:

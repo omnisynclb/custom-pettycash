@@ -189,8 +189,8 @@ class RepositoryContractTests(unittest.TestCase):
 			/ "center_expense_management/center_expense_management/doctype/"
 			"petty_cash_settlement/petty_cash_settlement.js"
 		).read_text()
-		self.assertIn('BUSINESS_FIELDS - {"account", "payment_method", "report_email"}', controller)
-		self.assertIn('allowed = {"account", "payment_method", "report_email"}', controller)
+		self.assertIn('BUSINESS_FIELDS - {"account", "payment_method"}', controller)
+		self.assertIn('allowed = {"account", "payment_method"}', controller)
 		self.assertIn('BUSINESS_FIELDS - {"expenses"}', controller)
 		self.assertIn("EXPENSE_BUSINESS_FIELDS", controller)
 		self.assertIn("expense_business_values", controller)
@@ -201,6 +201,34 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("frm.toggle_display('expense_account_section'", client)
 		self.assertNotIn("self.amount = self.total_expenses", controller)
 		self.assertIn("load_account_balance(frm);", client)
+		self.assertNotIn("generate_and_email_settlement_report", controller)
+
+	def test_whish_grid_and_excel_contract(self):
+		whish_employee = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_whish_employee/petty_cash_whish_employee.json"
+		)
+		grid_fields = [
+			field for field in whish_employee["fields"]
+			if field.get("fieldname") != "section_break_6ezf"
+		]
+		self.assertTrue(all(field.get("in_list_view") for field in grid_fields))
+		self.assertLessEqual(sum(field.get("columns", 1) for field in grid_fields), 10)
+
+		whish_controller = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_whish/petty_cash_whish.py"
+		).read_text()
+		self.assertIn('f"WHISH-{year}-{month:02d}"', whish_controller)
+
+		tasks = (ROOT / "center_expense_management/tasks.py").read_text()
+		for heading in (
+			'"Number"', '"NAME"', '"Phone Number"', '"Whish ID"',
+			'"Salary received by the employee ( NET)"', '"Currency"',
+		):
+			self.assertIn(heading, tasks)
+		self.assertNotIn("generate_and_email_settlement_report", tasks)
+		self.assertIn("PatternFill", tasks)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

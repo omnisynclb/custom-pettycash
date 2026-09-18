@@ -17,15 +17,19 @@
  ],
  "fields": [
   {
+   "columns": 1,
    "fieldname": "employee",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Employee",
    "options": "Employee",
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "settlement",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Settlement",
    "options": "Petty Cash Settlement",
    "read_only": 1
@@ -35,28 +39,38 @@
    "fieldtype": "Section Break"
   },
   {
+   "columns": 2,
    "fieldname": "employee_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Name"
   },
   {
+   "columns": 1,
    "fieldname": "phone_number",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Phone Number"
   },
   {
+   "columns": 1,
    "fieldname": "whish_id",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Whish ID"
   },
   {
+   "columns": 2,
    "fieldname": "salary_received_net",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Salary Received (NET)"
   },
   {
+   "columns": 1,
    "fieldname": "currency",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Currency",
    "options": "Currency"
   }

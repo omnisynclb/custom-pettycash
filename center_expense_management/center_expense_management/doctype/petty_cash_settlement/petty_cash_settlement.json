@@ -9,8 +9,8 @@
   "section_break_1oge",
   "amended_from",
   "center_officer",
-  "month",
   "settlement_month",
+  "month",
   "active_month_key",
   "column_break_7l5j",
   "cost_center",
@@ -80,9 +80,10 @@
   {
    "fieldname": "settlement_month",
    "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Settlement Month",
-   "read_only": 1
+   "in_list_view": 1,
+   "label": "Month",
+   "description": "Select the settlement month and year.",
+   "reqd": 1
   },
   {
    "fieldname": "payment_account",
@@ -127,9 +128,9 @@
    "description": "Month for which the petty cash expenses are being settled.",
    "fieldname": "month",
    "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Month",
-   "reqd": 1
+   "hidden": 1,
+   "label": "Month Start",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_7l5j",

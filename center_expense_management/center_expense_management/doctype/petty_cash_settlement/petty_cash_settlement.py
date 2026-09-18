@@ -1,6 +1,8 @@
 # Copyright (c) 2026, OmniSync and contributors
 # For license information, please see license.txt..
 
+import re
+
 import frappe
 
 from frappe import _
@@ -15,6 +17,7 @@ from center_expense_management.permissions import can_review_all, employee_for_u
 BUSINESS_FIELDS = {
     "center_officer",
     "month",
+    "settlement_month",
     "expenses",
     "account",
     "payment_method",
@@ -26,7 +29,6 @@ class PettyCashSettlement(Document):
 
     def validate(self):
         self.bind_center_officer_to_user()
-        self.month = frappe.utils.get_first_day(self.month) if self.month else self.month
         self.set_settlement_month()
         self.validate_stage_changes()
         self.validate_center_officer_and_month()
@@ -45,11 +47,18 @@ class PettyCashSettlement(Document):
             validate_email_address(self.report_email, throw=True)
 
     def set_settlement_month(self):
-        if self.month:
-            self.settlement_month = frappe.utils.getdate(self.month).strftime("%Y-%m")
-            self.active_month_key = (
-                f"{self.center_officer}:{self.settlement_month}" if self.docstatus != 2 else None
-            )
+        value = (self.settlement_month or "").strip()
+        if not value and self.month:
+            value = frappe.utils.getdate(self.month).strftime("%Y-%m")
+
+        if not re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", value):
+            frappe.throw("Month must use YYYY-MM format.")
+
+        self.settlement_month = value
+        self.month = frappe.utils.get_first_day(f"{value}-01")
+        self.active_month_key = (
+            f"{self.center_officer}:{self.settlement_month}" if self.docstatus != 2 else None
+        )
 
     def on_update(self):
         if (

@@ -15,12 +15,24 @@ frappe.ui.form.on('Petty Cash Settlement', {
         load_petty_cash_configuration(frm);
     },
 
+    settlement_month: function(frm) {
+        if (/^\d{4}-(0[1-9]|1[0-2])$/.test(frm.doc.settlement_month || '')) {
+            frm.set_value('month', `${frm.doc.settlement_month}-01`);
+        }
+    },
+
     petty_cash_limit: function(frm) {
         calculate_totals(frm);
     },
 
     refresh: function(frm) {
         calculate_totals(frm);
+
+        const month_input = frm.fields_dict.settlement_month.$input;
+        if (month_input) {
+            month_input.attr('type', 'month');
+            month_input.attr('placeholder', 'YYYY-MM');
+        }
 
         frm.set_df_property(
             'account',

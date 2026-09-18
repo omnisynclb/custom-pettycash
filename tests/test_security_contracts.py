@@ -149,6 +149,28 @@ class RepositoryContractTests(unittest.TestCase):
 		cost_center = next(field for field in expense["fields"] if field["fieldname"] == "cost_center")
 		self.assertEqual(cost_center["permlevel"], 1)
 
+	def test_month_picker_and_expense_grid_defaults(self):
+		settlement = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.json"
+		)
+		fields = {field["fieldname"]: field for field in settlement["fields"] if field.get("fieldname")}
+		self.assertEqual(fields["settlement_month"]["fieldtype"], "Data")
+		self.assertEqual(fields["settlement_month"]["reqd"], 1)
+		self.assertFalse(fields["settlement_month"].get("hidden", 0))
+		self.assertEqual(fields["month"]["hidden"], 1)
+
+		expense = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_expense/petty_cash_expense.json"
+		)
+		grid_fields = [
+			field for field in expense["fields"]
+			if field.get("fieldname") not in {"section_break_280q"}
+		]
+		self.assertTrue(all(field.get("in_list_view") for field in grid_fields))
+		self.assertLessEqual(sum(field.get("columns", 1) for field in grid_fields), 10)
+
 	def test_no_hard_coded_whish_account(self):
 		controller = (
 			ROOT

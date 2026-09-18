@@ -21,6 +21,8 @@
    "description": "Assigned by Finance before approval.",
    "fieldname": "cost_center",
    "fieldtype": "Link",
+   "columns": 1,
+   "in_list_view": 1,
    "label": "Cost Center",
    "options": "Cost Center",
    "permlevel": 1
@@ -32,6 +34,7 @@
   {
    "fieldname": "expense_item",
    "fieldtype": "Data",
+   "columns": 2,
    "in_list_view": 1,
    "label": "Expense Item",
    "reqd": 1
@@ -39,6 +42,7 @@
   {
    "fieldname": "expense_date",
    "fieldtype": "Date",
+   "columns": 1,
    "in_list_view": 1,
    "label": "Expense Date",
    "reqd": 1
@@ -46,12 +50,16 @@
   {
    "fieldname": "invoice_number",
    "fieldtype": "Data",
+   "columns": 1,
+   "in_list_view": 1,
    "label": "Invoice Number",
    "reqd": 1
   },
   {
    "fieldname": "supplier",
    "fieldtype": "Link",
+   "columns": 1,
+   "in_list_view": 1,
    "label": "Supplier",
    "options": "Supplier",
    "reqd": 1
@@ -59,11 +67,14 @@
   {
    "fieldname": "related_details",
    "fieldtype": "Small Text",
+   "columns": 1,
+   "in_list_view": 1,
    "label": "Related Details"
   },
   {
    "fieldname": "amount",
    "fieldtype": "Currency",
+   "columns": 1,
    "in_list_view": 1,
    "label": "Amount",
    "reqd": 1
@@ -72,6 +83,8 @@
    "description": "Attach the invoice or receipt for this expense.",
    "fieldname": "receipt",
    "fieldtype": "Attach",
+   "columns": 1,
+   "in_list_view": 1,
    "label": "Receipt",
    "reqd": 1
   }

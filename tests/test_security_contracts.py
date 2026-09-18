@@ -171,6 +171,22 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertTrue(all(field.get("in_list_view") for field in grid_fields))
 		self.assertLessEqual(sum(field.get("columns", 1) for field in grid_fields), 10)
 
+	def test_payment_information_is_finance_controlled(self):
+		controller = (
+			ROOT
+			/ "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.py"
+		).read_text()
+		client = (
+			ROOT
+			/ "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.js"
+		).read_text()
+		self.assertIn('BUSINESS_FIELDS - {"account", "payment_method", "report_email"}', controller)
+		self.assertIn('{"account", "payment_method", "report_email", "expenses"}', controller)
+		self.assertIn("state === 'Pending Finance Review'", client)
+		self.assertIn("frm.toggle_display('payment_information_section'", client)
+
 	def test_no_hard_coded_whish_account(self):
 		controller = (
 			ROOT

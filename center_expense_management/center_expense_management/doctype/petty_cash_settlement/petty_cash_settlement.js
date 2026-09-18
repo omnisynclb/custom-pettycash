@@ -27,6 +27,7 @@ frappe.ui.form.on('Petty Cash Settlement', {
 
     refresh: function(frm) {
         calculate_totals(frm);
+        configure_payment_information(frm);
 
         const month_input = frm.fields_dict.settlement_month.$input;
         if (month_input) {
@@ -184,6 +185,23 @@ frappe.ui.form.on('Petty Cash Settlement', {
         }
     }
 });
+
+function configure_payment_information(frm) {
+    const state = frm.doc.workflow_state || 'Draft';
+    const visible_states = [
+        'Pending Finance Review',
+        'Pending Operations Approval',
+        'Pending Director Approval',
+        'Pending Treasurer Approval',
+        'Pending President Approval',
+        'Completed'
+    ];
+    const finance_can_edit = state === 'Pending Finance Review';
+
+    frm.toggle_display('payment_information_section', visible_states.includes(state));
+    frm.set_df_property('payment_method', 'read_only', !finance_can_edit);
+    frm.set_df_property('report_email', 'read_only', !finance_can_edit);
+}
 
 frappe.ui.form.on('Petty Cash Expense', {
     amount: function(frm) {

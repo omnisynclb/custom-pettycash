@@ -29,6 +29,7 @@ class PettyCashSettlement(Document):
 
     def validate(self):
         self.bind_center_officer_to_user()
+        self.protect_initial_finance_fields()
         self.set_settlement_month()
         self.validate_stage_changes()
         self.validate_center_officer_and_month()
@@ -45,6 +46,14 @@ class PettyCashSettlement(Document):
             if not self.report_email:
                 frappe.throw("Report Email is required before completion.")
             validate_email_address(self.report_email, throw=True)
+
+    def protect_initial_finance_fields(self):
+        if not self.is_new() or frappe.session.user == "Administrator":
+            return
+        if "LSA Finance Approver" not in frappe.get_roles():
+            self.account = None
+            self.report_email = None
+            self.payment_method = "Whish"
 
     def set_settlement_month(self):
         value = (self.settlement_month or "").strip()
@@ -107,9 +116,13 @@ class PettyCashSettlement(Document):
             return
 
         previous_state = before.workflow_state or "Draft"
-        allowed = BUSINESS_FIELDS if previous_state == "Draft" else set()
+        allowed = (
+            BUSINESS_FIELDS - {"account", "payment_method", "report_email"}
+            if previous_state == "Draft"
+            else set()
+        )
         if previous_state == "Pending Finance Review":
-            allowed = {"account", "report_email", "expenses"}
+            allowed = {"account", "payment_method", "report_email", "expenses"}
             if self.has_value_changed("expenses"):
                 self.validate_finance_expense_changes(before)
 

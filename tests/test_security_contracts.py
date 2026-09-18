@@ -237,6 +237,17 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		roles = {permission["role"] for permission in whish["permissions"]}
 		self.assertIn("LSA Finance Approver", roles)
+		allocation_path = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_account_allocation"
+		)
+		self.assertFalse(any(allocation_path.glob("*.json")))
+		self.assertFalse(any(allocation_path.glob("*.py")))
+		self.assertFalse(any(allocation_path.glob("*.js")))
+		self.assertIn(
+			"center_expense_management.workspace.restore.run",
+			(ROOT / "center_expense_management/hooks.py").read_text(),
+		)
 
 	def test_production_app_dependency_is_declared(self):
 		hooks = (ROOT / "center_expense_management/hooks.py").read_text()

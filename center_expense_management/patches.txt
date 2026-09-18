@@ -7,3 +7,4 @@
 center_expense_management.patches.v0_1.add_integrity_constraints
 center_expense_management.patches.v0_2.backfill_month_selectors
 center_expense_management.patches.v0_2.rename_petty_cash_configurations
+center_expense_management.patches.v0_2.remove_account_allocation_doctype

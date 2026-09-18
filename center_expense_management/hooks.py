@@ -58,6 +58,10 @@ scheduler_events = {
         "center_expense_management.tasks.send_monthly_reminders",
     ]
 }
+
+after_migrate = [
+    "center_expense_management.workspace.restore.run",
+]
 # Apps
 # ------------------
 

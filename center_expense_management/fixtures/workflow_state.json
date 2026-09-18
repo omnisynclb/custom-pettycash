@@ -1,0 +1,10 @@
+[
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Draft", "style": "", "workflow_state_name": "Draft"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Accountant Review", "style": "Info", "workflow_state_name": "Pending Accountant Review"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Finance Review", "style": "Warning", "workflow_state_name": "Pending Finance Review"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Operations Approval", "style": "Warning", "workflow_state_name": "Pending Operations Approval"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Director Approval", "style": "Warning", "workflow_state_name": "Pending Director Approval"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Treasurer Approval", "style": "Warning", "workflow_state_name": "Pending Treasurer Approval"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending President Approval", "style": "Warning", "workflow_state_name": "Pending President Approval"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Completed", "style": "Success", "workflow_state_name": "Completed"}
+]

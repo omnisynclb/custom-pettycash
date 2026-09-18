@@ -1,0 +1,13 @@
+[
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Submit for Accountant Review", "workflow_action_name": "Submit for Accountant Review"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Approve", "workflow_action_name": "Approve"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Center Officer", "workflow_action_name": "Return to Center Officer"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Accountant", "workflow_action_name": "Return to Accountant"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Finance", "workflow_action_name": "Return to Finance"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Approve as Director", "workflow_action_name": "Approve as Director"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Operations", "workflow_action_name": "Return to Operations"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Approve as Treasurer", "workflow_action_name": "Approve as Treasurer"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Director", "workflow_action_name": "Return to Director"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Final Approve", "workflow_action_name": "Final Approve"},
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Treasurer", "workflow_action_name": "Return to Treasurer"}
+]

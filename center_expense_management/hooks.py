@@ -7,6 +7,35 @@ app_license = "mit"
 
 fixtures = [
     {
+        "dt": "Workflow State",
+        "filters": [["name", "in", [
+            "Draft",
+            "Pending Accountant Review",
+            "Pending Finance Review",
+            "Pending Operations Approval",
+            "Pending Director Approval",
+            "Pending Treasurer Approval",
+            "Pending President Approval",
+            "Completed",
+        ]]],
+    },
+    {
+        "dt": "Workflow Action Master",
+        "filters": [["name", "in", [
+            "Submit for Accountant Review",
+            "Approve",
+            "Return to Center Officer",
+            "Return to Accountant",
+            "Return to Finance",
+            "Approve as Director",
+            "Return to Operations",
+            "Approve as Treasurer",
+            "Return to Director",
+            "Final Approve",
+            "Return to Treasurer",
+        ]]],
+    },
+    {
         "dt": "Workflow",
         "filters": [
             ["name", "=", "Petty Cash Settlement Workflow"]

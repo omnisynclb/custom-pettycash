@@ -121,6 +121,19 @@ class RepositoryContractTests(unittest.TestCase):
 			],
 		)
 
+	def test_workflow_references_are_shipped_as_fixtures(self):
+		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
+		state_rows = self.load_json("center_expense_management/fixtures/workflow_state.json")
+		action_rows = self.load_json("center_expense_management/fixtures/workflow_action_master.json")
+		shipped_states = {row["name"] for row in state_rows}
+		shipped_actions = {row["name"] for row in action_rows}
+		self.assertEqual({row["state"] for row in workflow["states"]}, shipped_states)
+		self.assertEqual({row["action"] for row in workflow["transitions"]}, shipped_actions)
+
+		hooks = (ROOT / "center_expense_management/hooks.py").read_text()
+		self.assertLess(hooks.index('"dt": "Workflow State"'), hooks.index('"dt": "Workflow"'))
+		self.assertLess(hooks.index('"dt": "Workflow Action Master"'), hooks.index('"dt": "Workflow"'))
+
 	def test_settings_and_finance_cost_center_exist(self):
 		settings = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"

@@ -191,6 +191,8 @@ class RepositoryContractTests(unittest.TestCase):
 		).read_text()
 		self.assertIn('BUSINESS_FIELDS - {"account", "payment_method", "report_email"}', controller)
 		self.assertIn('allowed = {"account", "payment_method", "report_email"}', controller)
+		self.assertIn('BUSINESS_FIELDS - {"expenses"}', controller)
+		self.assertIn("EXPENSE_BUSINESS_FIELDS", controller)
 		self.assertIn("state === 'Pending Finance Review'", client)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)

@@ -26,6 +26,17 @@ BUSINESS_FIELDS = {
     "report_email",
 }
 
+EXPENSE_BUSINESS_FIELDS = (
+    "name",
+    "expense_item",
+    "expense_date",
+    "invoice_number",
+    "supplier",
+    "related_details",
+    "amount",
+    "receipt",
+)
+
 MONTH_NAMES = (
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
@@ -143,11 +154,33 @@ class PettyCashSettlement(Document):
         if previous_state == "Pending Finance Review":
             allowed = {"account", "payment_method", "report_email"}
 
-        changed = {field for field in BUSINESS_FIELDS if self.has_value_changed(field)}
+        changed = {
+            field
+            for field in BUSINESS_FIELDS - {"expenses"}
+            if self.has_value_changed(field)
+        }
+        if self.expenses_have_business_changes(before):
+            changed.add("expenses")
+
         forbidden = changed - allowed
         if forbidden:
             labels = ", ".join(sorted(self.meta.get_label(field) for field in forbidden))
             frappe.throw(f"These fields cannot be changed during {previous_state}: {labels}.")
+
+    def expenses_have_business_changes(self, before):
+        """Ignore retired child fields while protecting submitted expense details."""
+        if len(self.expenses) != len(before.expenses):
+            return True
+
+        current_rows = [
+            tuple(row.get(field) for field in EXPENSE_BUSINESS_FIELDS)
+            for row in self.expenses
+        ]
+        previous_rows = [
+            tuple(row.get(field) for field in EXPENSE_BUSINESS_FIELDS)
+            for row in before.expenses
+        ]
+        return current_rows != previous_rows
 
     def validate_finance_account(self):
         if self.account:

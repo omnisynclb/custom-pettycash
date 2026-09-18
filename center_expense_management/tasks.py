@@ -4,7 +4,11 @@ from frappe.utils.xlsxutils import make_xlsx
 
 
 def create_monthly_petty_cash_whish():
-    month = get_first_day(today())
+    get_or_create_monthly_petty_cash_whish(get_first_day(today()))
+
+
+def get_or_create_monthly_petty_cash_whish(month):
+    month = get_first_day(month)
 
     existing = frappe.db.exists(
         "Petty Cash Whish",
@@ -14,7 +18,7 @@ def create_monthly_petty_cash_whish():
     )
 
     if existing:
-        return
+        return existing
 
     whish = frappe.get_doc({
         "doctype": "Petty Cash Whish",
@@ -25,7 +29,11 @@ def create_monthly_petty_cash_whish():
         whish.insert(ignore_permissions=True)
     except frappe.DuplicateEntryError:
         # Another worker created the same uniquely named monthly record.
-        return
+        return frappe.db.get_value(
+            "Petty Cash Whish", {"month_and_year": month}, "name"
+        )
+
+    return whish.name
 
 
 def generate_and_email_settlement_report(settlement_name):

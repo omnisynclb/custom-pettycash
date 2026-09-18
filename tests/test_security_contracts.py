@@ -211,6 +211,8 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertNotIn('"Whish - OS"', controller)
 		self.assertNotIn("custom_lsa_payroll_journal_approval", controller)
 		self.assertNotIn("custom_lsa_monthly_payroll_approval", controller)
+		self.assertIn("get_or_create_monthly_petty_cash_whish", controller)
+		self.assertNotIn("No Petty Cash Whish was found", controller)
 
 	def test_professional_configuration_naming_and_whish_workspace_link(self):
 		configuration = self.load_json(

@@ -235,24 +235,11 @@ class PettyCashSettlement(Document):
         # Example: 2026-09-16 -> 2026-09-01
         whish_month = frappe.utils.get_first_day(self.payment_date)
 
-        # Find the Petty Cash Whish for the payment month.
-        whish_name = frappe.db.get_value(
-            "Petty Cash Whish",
-            {"month_and_year": whish_month},
-            "name"
-        )
+        # The scheduler normally creates this batch. Create it on demand as a
+        # fallback so final approval never depends on scheduler timing.
+        from center_expense_management.tasks import get_or_create_monthly_petty_cash_whish
 
-        if not whish_name:
-            frappe.throw(
-                _(
-                    "No Petty Cash Whish was found for {0}."
-                ).format(
-                    frappe.utils.formatdate(
-                        whish_month,
-                        "MMMM yyyy"
-                    )
-                )
-            )
+        whish_name = get_or_create_monthly_petty_cash_whish(whish_month)
 
         # Center Officer is linked to Employee.
         employee = frappe.get_doc("Employee", self.center_officer)

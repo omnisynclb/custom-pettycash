@@ -54,8 +54,6 @@ class PettyCashSettlement(Document):
         self.calculate_totals()
         self.validate_finance_account()
 
-        self.amount = self.total_expenses
-
         if self.workflow_state == "Completed":
             if self.payment_method != "Whish":
                 frappe.throw("Payment Method must be Whish before completion.")

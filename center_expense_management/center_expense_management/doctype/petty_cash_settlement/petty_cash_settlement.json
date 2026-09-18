@@ -270,9 +270,11 @@
    "options": "Account"
   },
   {
+   "description": "Current balance of the ledger account selected by Finance.",
    "fieldname": "amount",
    "fieldtype": "Currency",
-   "label": "Amount"
+   "label": "Account Balance",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_zbjg",

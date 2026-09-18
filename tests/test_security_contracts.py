@@ -199,6 +199,8 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("state === 'Pending Finance Review'", client)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)
+		self.assertNotIn("self.amount = self.total_expenses", controller)
+		self.assertIn("load_account_balance(frm);", client)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

@@ -45,6 +45,10 @@ frappe.ui.form.on('Petty Cash Settlement', {
 
         frm.set_df_property('amount', 'read_only', 1);
         frm.set_df_property('payment_date', 'read_only', 1);
+
+        if (frm.doc.workflow_state === 'Pending Finance Review' && frm.doc.account) {
+            load_account_balance(frm);
+        }
     },
 
     expenses_add: function(frm) {

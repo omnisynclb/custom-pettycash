@@ -134,7 +134,7 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertLess(hooks.index('"dt": "Workflow State"'), hooks.index('"dt": "Workflow"'))
 		self.assertLess(hooks.index('"dt": "Workflow Action Master"'), hooks.index('"dt": "Workflow"'))
 
-	def test_settings_and_finance_cost_center_exist(self):
+	def test_settings_and_single_settlement_cost_center_exist(self):
 		settings = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"
 			"petty_cash_settings/petty_cash_settings.json"
@@ -146,8 +146,13 @@ class RepositoryContractTests(unittest.TestCase):
 			"center_expense_management/center_expense_management/doctype/"
 			"petty_cash_expense/petty_cash_expense.json"
 		)
-		cost_center = next(field for field in expense["fields"] if field["fieldname"] == "cost_center")
-		self.assertEqual(cost_center["permlevel"], 1)
+		self.assertNotIn("cost_center", {field["fieldname"] for field in expense["fields"]})
+
+		settlement = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.json"
+		)
+		self.assertIn("cost_center", {field["fieldname"] for field in settlement["fields"]})
 
 	def test_month_and_year_fields_and_expense_grid_defaults(self):
 		settlement = self.load_json(
@@ -185,7 +190,7 @@ class RepositoryContractTests(unittest.TestCase):
 			"petty_cash_settlement/petty_cash_settlement.js"
 		).read_text()
 		self.assertIn('BUSINESS_FIELDS - {"account", "payment_method", "report_email"}', controller)
-		self.assertIn('{"account", "payment_method", "report_email", "expenses"}', controller)
+		self.assertIn('allowed = {"account", "payment_method", "report_email"}', controller)
 		self.assertIn("state === 'Pending Finance Review'", client)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)

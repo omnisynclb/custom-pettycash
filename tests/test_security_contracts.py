@@ -299,6 +299,11 @@ class RepositoryContractTests(unittest.TestCase):
 			if item.get("link_to") == "Petty Cash Whish"
 		]
 		self.assertEqual(len(whish_links), 1)
+		journal_links = [
+			item for item in sidebar["items"]
+			if item.get("link_to") == "Journal Entry"
+		]
+		self.assertEqual(len(journal_links), 1)
 
 		whish = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"

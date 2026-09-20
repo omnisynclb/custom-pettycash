@@ -1,7 +1,7 @@
 {
  "app": "center_expense_management",
  "charts": [],
- "content": "[{\"id\":\"petty-cash-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Petty Cash Management</b></span>\",\"col\":12}},{\"id\":\"petty-cash-settlements\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Petty Cash Settlements\",\"col\":4}},{\"id\":\"petty-cash-whish\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whish Payment Batches\",\"col\":4}},{\"id\":\"petty-cash-setup-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
+ "content": "[{\"id\":\"petty-cash-header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Petty Cash Management</b></span>\",\"col\":12}},{\"id\":\"petty-cash-settlements\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Petty Cash Settlements\",\"col\":4}},{\"id\":\"petty-cash-whish\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Whish Payment Batches\",\"col\":4}},{\"id\":\"petty-cash-journals\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Journal Entries\",\"col\":4}},{\"id\":\"petty-cash-accounting-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Accounting\",\"col\":4}},{\"id\":\"petty-cash-setup-card\",\"type\":\"card\",\"data\":{\"card_name\":\"Setup\",\"col\":4}}]",
  "creation": "2026-09-18 00:00:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -13,6 +13,8 @@
  "is_hidden": 0,
  "label": "Petty Cash",
  "links": [
+  {"hidden": 0, "is_query_report": 0, "label": "Accounting", "link_count": 1, "onboard": 0, "type": "Card Break"},
+  {"hidden": 0, "is_query_report": 0, "label": "Journal Entries", "link_count": 0, "link_to": "Journal Entry", "link_type": "DocType", "onboard": 0, "type": "Link"},
   {"hidden": 0, "is_query_report": 0, "label": "Setup", "link_count": 2, "onboard": 0, "type": "Card Break"},
   {"hidden": 0, "is_query_report": 0, "label": "Petty Cash Configuration", "link_count": 0, "link_to": "Petty Cash Configuration", "link_type": "DocType", "onboard": 0, "type": "Link"},
   {"hidden": 0, "is_query_report": 0, "label": "Petty Cash Settings", "link_count": 0, "link_to": "Petty Cash Settings", "link_type": "DocType", "onboard": 0, "type": "Link"}
@@ -30,7 +32,8 @@
  "sequence_id": 25.0,
  "shortcuts": [
   {"color": "Blue", "doc_view": "List", "format": "", "icon": "file-text", "label": "Petty Cash Settlements", "link_to": "Petty Cash Settlement", "stats_filter": "", "type": "DocType"},
-  {"color": "Green", "doc_view": "List", "format": "", "icon": "credit-card", "label": "Whish Payment Batches", "link_to": "Petty Cash Whish", "stats_filter": "", "type": "DocType"}
+  {"color": "Green", "doc_view": "List", "format": "", "icon": "credit-card", "label": "Whish Payment Batches", "link_to": "Petty Cash Whish", "stats_filter": "", "type": "DocType"},
+  {"color": "Orange", "doc_view": "List", "format": "", "icon": "book-open", "label": "Journal Entries", "link_to": "Journal Entry", "stats_filter": "", "type": "DocType"}
  ],
  "title": "Petty Cash",
  "type": "Workspace"

@@ -279,6 +279,14 @@ class RepositoryContractTests(unittest.TestCase):
 			"petty_cash_configuration/petty_cash_configuration.json"
 		)
 		self.assertEqual(configuration["autoname"], "format:PCC-{center_officer}")
+		expected_layout = [
+			"section_break_s3jg", "center_officer", "payment_account",
+			"petty_cash_limit", "whish_phone_number", "currency",
+			"last_reminder_month", "configuration_column_break",
+			"cost_center", "petty_cash_account", "reminder_email",
+			"whish_id", "reminder_sent_on",
+		]
+		self.assertEqual(configuration["field_order"], expected_layout)
 
 		sidebar = self.load_json(
 			"center_expense_management/center_expense_management/workspace_sidebar/"

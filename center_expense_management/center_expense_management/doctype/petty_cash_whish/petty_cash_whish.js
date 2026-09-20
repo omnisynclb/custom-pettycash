@@ -19,13 +19,5 @@ frappe.ui.form.on('Petty Cash Whish', {
                 });
             });
         }
-
-        if (!frm.is_new() && frm.doc.excel_file) {
-            frm.add_custom_button(__('Download Latest Excel'), function() {
-                const separator = frm.doc.excel_file.includes('?') ? '&' : '?';
-                const version = encodeURIComponent(frm.doc.modified || Date.now());
-                window.open(`${frm.doc.excel_file}${separator}v=${version}`, '_blank');
-            });
-        }
     }
 });

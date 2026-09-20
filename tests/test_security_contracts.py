@@ -259,8 +259,9 @@ class RepositoryContractTests(unittest.TestCase):
 			"petty_cash_whish/petty_cash_whish.js"
 		).read_text()
 		self.assertIn("Send Whish Excel Now", whish_client)
-		self.assertIn("Download Latest Excel", whish_client)
-		self.assertIn("encodeURIComponent", whish_client)
+		self.assertNotIn("Download Latest Excel", whish_client)
+		self.assertIn("has_value_changed(\"employees\")", whish_controller)
+		self.assertIn("generate_whish_excel_attachment", whish_controller)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

@@ -274,6 +274,12 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertNotIn("custom_lsa_monthly_payroll_approval", controller)
 		self.assertIn("get_or_create_monthly_petty_cash_whish", controller)
 		self.assertNotIn("No Petty Cash Whish was found", controller)
+		self.assertIn("petty_cash_center_officer_name", controller)
+		customizations = (ROOT / "center_expense_management/customizations.py").read_text()
+		self.assertIn('"Journal Entry"', customizations)
+		self.assertIn('"petty_cash_settlement"', customizations)
+		self.assertIn('"petty_cash_center_officer"', customizations)
+		self.assertIn('"petty_cash_center_officer_name"', customizations)
 
 	def test_professional_configuration_naming_and_whish_workspace_link(self):
 		configuration = self.load_json(

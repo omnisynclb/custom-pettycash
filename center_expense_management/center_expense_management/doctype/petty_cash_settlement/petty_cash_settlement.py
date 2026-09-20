@@ -447,9 +447,13 @@ class PettyCashSettlement(Document):
 
         journal_entry.posting_date = self.payment_date
         journal_entry.company = company
+        employee_name = frappe.db.get_value("Employee", self.center_officer, "employee_name")
         journal_entry.user_remark = (
-            f"Petty Cash Settlement {self.name}"
+            f"Petty Cash Settlement {self.name} - {employee_name} ({self.center_officer})"
         )
+        journal_entry.petty_cash_settlement = self.name
+        journal_entry.petty_cash_center_officer = self.center_officer
+        journal_entry.petty_cash_center_officer_name = employee_name
 
         journal_entry.append(
             "accounts",

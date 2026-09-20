@@ -61,6 +61,7 @@ scheduler_events = {
 }
 
 after_migrate = [
+    "center_expense_management.customizations.sync_journal_entry_fields",
     "center_expense_management.workspace.restore.run",
 ]
 # Apps

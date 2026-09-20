@@ -6,6 +6,9 @@ from frappe.modules.import_file import import_file_by_path
 
 FIXTURES = (
 	Path(__file__).parents[1]
+	/ "desktop_icon"
+	/ "petty_cash.json",
+	Path(__file__).parents[1]
 	/ "center_expense_management"
 	/ "workspace"
 	/ "petty_cash"

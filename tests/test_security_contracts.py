@@ -322,6 +322,11 @@ class RepositoryContractTests(unittest.TestCase):
 			"center_expense_management.workspace.restore.run",
 			(ROOT / "center_expense_management/hooks.py").read_text(),
 		)
+		desktop_icon = self.load_json(
+			"center_expense_management/desktop_icon/petty_cash.json"
+		)
+		self.assertEqual(desktop_icon["link_to"], "Petty Cash")
+		self.assertEqual(desktop_icon["link_type"], "Workspace Sidebar")
 
 	def test_production_app_dependency_is_declared(self):
 		hooks = (ROOT / "center_expense_management/hooks.py").read_text()

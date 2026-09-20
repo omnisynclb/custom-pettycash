@@ -104,10 +104,6 @@ def generate_and_email_whish_excel(payment_date):
     if not whish_name:
         frappe.throw("The monthly Petty Cash Whish document does not exist.")
 
-    settings = frappe.get_single("Petty Cash Settings")
-    if not settings.whish_email:
-        frappe.throw("Whish Email must be configured in Petty Cash Settings.")
-
     whish = frappe.get_doc("Petty Cash Whish", whish_name)
     rows = [[
         "Number",
@@ -150,6 +146,14 @@ def generate_and_email_whish_excel(payment_date):
     })
     file_doc.save(ignore_permissions=True)
     whish.db_set("excel_file", file_doc.file_url)
+
+    settings = frappe.get_single("Petty Cash Settings")
+    if not settings.whish_email:
+        frappe.log_error(
+            f"Whish Excel attached to {whish.name}, but no Whish Email is configured.",
+            "Petty Cash Whish Email Skipped",
+        )
+        return file_doc.name
 
     frappe.sendmail(
         recipients=[settings.whish_email],

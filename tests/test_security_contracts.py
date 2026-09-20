@@ -232,7 +232,9 @@ class RepositoryContractTests(unittest.TestCase):
 			ROOT / "center_expense_management/center_expense_management/doctype/"
 			"petty_cash_whish/petty_cash_whish.py"
 		).read_text()
-		self.assertIn('f"WHISH-{year}-{month:02d}"', whish_controller)
+		self.assertIn("def autoname(self):", whish_controller)
+		self.assertNotIn("def before_insert(self):", whish_controller)
+		self.assertIn('f"WHISH-{value:%Y-%m}"', whish_controller)
 
 		tasks = (ROOT / "center_expense_management/tasks.py").read_text()
 		for heading in (
@@ -242,6 +244,9 @@ class RepositoryContractTests(unittest.TestCase):
 			self.assertIn(heading, tasks)
 		self.assertNotIn("generate_and_email_settlement_report", tasks)
 		self.assertIn("PatternFill", tasks)
+		self.assertIn('"attached_to_doctype": "Petty Cash Whish"', tasks)
+		self.assertIn('"is_private": 1', tasks)
+		self.assertIn("Whish Email Skipped", tasks)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

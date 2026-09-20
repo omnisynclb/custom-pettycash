@@ -8,13 +8,15 @@ from frappe.utils import get_first_day, getdate
 
 class PettyCashWhish(Document):
 
-    def before_insert(self):
+    def autoname(self):
         if not self.month_and_year:
             frappe.throw("Month and Year is required.")
 
         self.month_and_year = get_first_day(self.month_and_year)
         value = getdate(self.month_and_year)
-        month = value.month
-        year = value.year
+        self.name = f"WHISH-{value:%Y-%m}"
 
-        self.name = f"WHISH-{year}-{month:02d}"
+    def validate(self):
+        if not self.month_and_year:
+            frappe.throw("Month and Year is required.")
+        self.month_and_year = get_first_day(self.month_and_year)

@@ -9,3 +9,4 @@ center_expense_management.patches.v0_2.backfill_month_selectors
 center_expense_management.patches.v0_2.rename_petty_cash_configurations
 center_expense_management.patches.v0_2.remove_account_allocation_doctype
 center_expense_management.patches.v0_2.rename_whish_batches
+center_expense_management.patches.v0_2.repair_whish_batch_names

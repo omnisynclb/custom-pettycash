@@ -127,6 +127,8 @@ def generate_whish_excel_attachment(payment_date=None, whish_name=None):
         ])
 
     content = _make_whish_excel(rows)
+    file_version = now_datetime().strftime("%Y%m%d-%H%M%S-%f")
+    attachment_name = f"{whish.name}-v{file_version}.xlsx"
     old_files = frappe.get_all(
         "File",
         filters={
@@ -141,7 +143,7 @@ def generate_whish_excel_attachment(payment_date=None, whish_name=None):
 
     file_doc = frappe.get_doc({
         "doctype": "File",
-        "file_name": f"{whish.name}.xlsx",
+        "file_name": attachment_name,
         "content": content,
         "is_private": 1,
         "attached_to_doctype": "Petty Cash Whish",

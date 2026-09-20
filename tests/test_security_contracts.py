@@ -248,6 +248,7 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("PatternFill", tasks)
 		self.assertIn('"attached_to_doctype": "Petty Cash Whish"', tasks)
 		self.assertIn('"is_private": 1', tasks)
+		self.assertIn('attachment_name = f"{whish.name}-v{file_version}.xlsx"', tasks)
 		self.assertIn("def send_scheduled_whish_excel():", tasks)
 		self.assertIn("def send_whish_excel_now(whish_name):", tasks)
 		self.assertIn("def generate_whish_excel_attachment", tasks)

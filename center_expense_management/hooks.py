@@ -56,6 +56,7 @@ scheduler_events = {
     "daily": [
         "center_expense_management.tasks.create_monthly_petty_cash_whish",
         "center_expense_management.tasks.send_monthly_reminders",
+        "center_expense_management.tasks.send_scheduled_whish_excel",
     ]
 }
 

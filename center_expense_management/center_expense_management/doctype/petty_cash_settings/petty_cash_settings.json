@@ -6,6 +6,8 @@
   "enable_monthly_reminders",
   "reminder_day",
   "whish_email",
+  "enable_automatic_whish_email",
+  "whish_send_day",
   "reminder_subject",
   "reminder_message"
  ],
@@ -30,6 +32,20 @@
    "fieldtype": "Data",
    "label": "Whish Email",
    "options": "Email",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_automatic_whish_email",
+   "fieldtype": "Check",
+   "label": "Enable Automatic Whish Email"
+  },
+  {
+   "default": "21",
+   "description": "The completed monthly Whish workbook is emailed once on this day.",
+   "fieldname": "whish_send_day",
+   "fieldtype": "Int",
+   "label": "Whish Send Day",
    "reqd": 1
   },
   {

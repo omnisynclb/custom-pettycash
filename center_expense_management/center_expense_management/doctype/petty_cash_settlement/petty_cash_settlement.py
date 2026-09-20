@@ -97,7 +97,7 @@ class PettyCashSettlement(Document):
         ):
             self.create_whish_journal_entry()
             frappe.enqueue(
-                "center_expense_management.tasks.generate_and_email_whish_excel",
+                "center_expense_management.tasks.generate_whish_excel_attachment",
                 queue="short",
                 enqueue_after_commit=True,
                 deduplicate=True,

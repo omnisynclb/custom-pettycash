@@ -141,6 +141,8 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		self.assertTrue(settings["issingle"])
 		self.assertIn("whish_email", {field["fieldname"] for field in settings["fields"]})
+		self.assertIn("whish_send_day", {field["fieldname"] for field in settings["fields"]})
+		self.assertIn("enable_automatic_whish_email", {field["fieldname"] for field in settings["fields"]})
 
 		expense = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"
@@ -246,7 +248,16 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("PatternFill", tasks)
 		self.assertIn('"attached_to_doctype": "Petty Cash Whish"', tasks)
 		self.assertIn('"is_private": 1', tasks)
-		self.assertIn("Whish Email Skipped", tasks)
+		self.assertIn("def send_scheduled_whish_excel():", tasks)
+		self.assertIn("def send_whish_excel_now(whish_name):", tasks)
+		self.assertIn("def generate_whish_excel_attachment", tasks)
+		self.assertIn("refreshes the attachment only and never sends an email", tasks)
+
+		whish_client = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_whish/petty_cash_whish.js"
+		).read_text()
+		self.assertIn("Send Whish Excel Now", whish_client)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (

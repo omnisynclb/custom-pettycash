@@ -31,6 +31,10 @@ class PermissionTests(unittest.TestCase):
 		with patch.object(permissions, "frappe", self.fake_frappe(roles={"LSA Finance Approver"})):
 			self.assertEqual(permissions.settlement_query_condition(), "")
 
+	def test_hr_manager_can_query_all(self):
+		with patch.object(permissions, "frappe", self.fake_frappe(roles={"LSA HR Manager"})):
+			self.assertEqual(permissions.settlement_query_condition(), "")
+
 	def test_center_officer_is_limited_to_linked_employee(self):
 		fake = self.fake_frappe(roles={"LSA Center Officer"}, employee="HR-EMP-0001")
 		with patch.object(permissions, "frappe", fake):
@@ -81,7 +85,7 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertLessEqual(
 			referenced,
 			{
-				"LSA Center Officer", "LSA Accountant", "LSA Finance Approver",
+				"LSA Center Officer", "LSA HR Manager", "LSA Accountant", "LSA Finance Approver",
 				"LSA Operations Manager", "LSA Executive Director",
 				"LSA Board Treasurer", "LSA President",
 			},
@@ -94,23 +98,24 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		roles = {row["role"] for row in doctype["permissions"]}
 		self.assertIn("LSA Finance Approver", roles)
+		self.assertIn("LSA HR Manager", roles)
 		self.assertIn("LSA Executive Director", roles)
 		self.assertIn("LSA Board Treasurer", roles)
 		self.assertIn("LSA President", roles)
 
 	def test_workflow_reaches_president_before_completion(self):
 		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
-		forward = [
+		forward = {
 			(row["state"], row["next_state"])
 			for row in workflow["transitions"]
 			if row["action"] in {
 				"Submit for Accountant Review", "Approve", "Approve as Director",
 				"Approve as Treasurer", "Final Approve",
 			}
-		]
+		}
 		self.assertEqual(
 			forward,
-			[
+			{
 				("Draft", "Pending Accountant Review"),
 				("Pending Accountant Review", "Pending Finance Review"),
 				("Pending Finance Review", "Pending Operations Approval"),
@@ -118,8 +123,19 @@ class RepositoryContractTests(unittest.TestCase):
 				("Pending Director Approval", "Pending Treasurer Approval"),
 				("Pending Treasurer Approval", "Pending President Approval"),
 				("Pending President Approval", "Completed"),
-			],
+			},
 		)
+
+	def test_center_officer_or_hr_manager_can_start_workflow(self):
+		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
+		roles = {
+			row["allowed"]
+			for row in workflow["transitions"]
+			if row["state"] == "Draft"
+			and row["action"] == "Submit for Accountant Review"
+			and row["next_state"] == "Pending Accountant Review"
+		}
+		self.assertEqual(roles, {"LSA Center Officer", "LSA HR Manager"})
 
 	def test_workflow_references_are_shipped_as_fixtures(self):
 		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]

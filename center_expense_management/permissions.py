@@ -3,6 +3,7 @@ import frappe
 
 APPROVER_ROLES = {
 	"System Manager",
+	"LSA HR Manager",
 	"LSA Accountant",
 	"LSA Finance Approver",
 	"LSA Operations Manager",

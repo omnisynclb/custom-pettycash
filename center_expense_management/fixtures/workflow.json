@@ -20,6 +20,7 @@
   ],
   "transitions": [
    {"action": "Submit for Accountant Review", "allow_self_approval": 1, "allowed": "LSA Center Officer", "next_state": "Pending Accountant Review", "state": "Draft"},
+   {"action": "Submit for Accountant Review", "allow_self_approval": 1, "allowed": "LSA HR Manager", "next_state": "Pending Accountant Review", "state": "Draft"},
    {"action": "Approve", "allow_self_approval": 0, "allowed": "LSA Accountant", "next_state": "Pending Finance Review", "state": "Pending Accountant Review"},
    {"action": "Return to Center Officer", "allow_self_approval": 0, "allowed": "LSA Accountant", "next_state": "Draft", "state": "Pending Accountant Review"},
    {"action": "Approve", "allow_self_approval": 0, "allowed": "LSA Finance Approver", "next_state": "Pending Operations Approval", "state": "Pending Finance Review"},

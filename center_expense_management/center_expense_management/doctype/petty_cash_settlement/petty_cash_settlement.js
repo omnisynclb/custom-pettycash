@@ -94,32 +94,30 @@ frappe.ui.form.on('Petty Cash Settlement', {
 
           frappe.dom.unfreeze();
 
-          frappe.prompt(
-             [
-                  {
-                      fieldname: 'return_reason',
-                      fieldtype: 'Small Text',
-                      label: __('Reason for Return'),
-                      reqd: 1
-                  }
-             ],
-             function(values) {
-                frm.call('add_return_comment', {
-                    reason: values.return_reason,
-                    action: action
-                }).then(function() {
-                // Prevent this action from being intercepted again
-                   frm.selected_workflow_action = null;
-
-                // Execute the workflow action
-                   frm.workflow_action(action);
-                });
-            },
-            __('Return Settlement'),
-            __('Return')
-          );
-
-          return false;
+          // Frappe waits for this promise before applying the selected workflow
+          // action. Record the reason first, then let the framework perform the
+          // transition once. Calling frm.workflow_action() here would execute a
+          // second return after the document has already changed state.
+          return new Promise(function(resolve) {
+              frappe.prompt(
+                 [
+                      {
+                          fieldname: 'return_reason',
+                          fieldtype: 'Small Text',
+                          label: __('Reason for Return'),
+                          reqd: 1
+                      }
+                 ],
+                 function(values) {
+                    frm.call('add_return_comment', {
+                        reason: values.return_reason,
+                        action: action
+                    }).then(resolve);
+                },
+                __('Return Settlement'),
+                __('Return')
+              );
+          });
        }
         // Receipt required when Center Officer submits
         if (frm.selected_workflow_action === 'Submit for Accountant Review') {

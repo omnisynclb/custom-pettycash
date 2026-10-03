@@ -137,6 +137,14 @@ class RepositoryContractTests(unittest.TestCase):
 		}
 		self.assertEqual(roles, {"LSA Center Officer", "LSA HR Manager"})
 
+	def test_return_reason_hook_does_not_execute_workflow_twice(self):
+		client_script = (
+			ROOT / "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.js"
+		).read_text()
+		self.assertIn("return new Promise", client_script)
+		self.assertNotIn("frm.workflow_action(action)", client_script)
+
 	def test_workflow_references_are_shipped_as_fixtures(self):
 		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
 		state_rows = self.load_json("center_expense_management/fixtures/workflow_state.json")

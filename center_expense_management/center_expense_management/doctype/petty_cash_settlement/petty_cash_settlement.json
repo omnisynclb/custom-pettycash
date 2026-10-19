@@ -309,6 +309,7 @@
    "read": 1,
    "report": 1,
    "role": "LSA Accountant",
+   "submit": 1,
    "write": 1
   },
   {
@@ -330,21 +331,6 @@
    "read": 1,
    "report": 1,
    "role": "LSA Executive Director",
-   "write": 1
-  },
-  {
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "LSA Board Treasurer",
-   "write": 1
-  },
-  {
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "LSA President",
-   "submit": 1,
    "write": 1
   },
   {
@@ -373,16 +359,6 @@
    "permlevel": 1,
    "read": 1,
    "role": "LSA Executive Director"
-  },
-  {
-   "permlevel": 1,
-   "read": 1,
-   "role": "LSA Board Treasurer"
-  },
-  {
-   "permlevel": 1,
-   "read": 1,
-   "role": "LSA President"
   }
  ],
  "row_format": "Dynamic",

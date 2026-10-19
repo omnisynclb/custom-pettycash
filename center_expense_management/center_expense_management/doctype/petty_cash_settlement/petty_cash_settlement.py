@@ -133,7 +133,7 @@ class PettyCashSettlement(Document):
             if previous_state == "Draft"
             else set()
         )
-        if previous_state == "Pending Finance Review":
+        if previous_state in {"Pending Finance Review", "Pending Final Finance Review"}:
             allowed = {"account", "payment_method"}
 
         changed = {
@@ -185,8 +185,10 @@ class PettyCashSettlement(Document):
         previous_state = self._doc_before_save.get("workflow_state")
 
         if (
-            previous_state == "Pending Finance Review"
-            and self.workflow_state == "Pending Operations Approval"
+            (previous_state, self.workflow_state) in {
+                ("Pending Finance Review", "Pending Operations Approval"),
+                ("Pending Final Finance Review", "Pending Accountant Closing"),
+            }
         ):
             if not self.account:
                 frappe.throw("Finance must select an Account before approving the settlement.")
@@ -355,8 +357,8 @@ class PettyCashSettlement(Document):
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
     def create_whish_journal_entry(self):
-        if frappe.session.user != "Administrator" and "LSA President" not in frappe.get_roles():
-            frappe.throw("Only President may complete final approval and payment.", frappe.PermissionError)
+        if frappe.session.user != "Administrator" and "LSA Accountant" not in frappe.get_roles():
+            frappe.throw("Only the Accountant may close the settlement and create payment.", frappe.PermissionError)
         if self.payment_status == "Paid":
             frappe.throw(
                 "This Petty Cash Settlement has already been paid."
@@ -820,8 +822,8 @@ class PettyCashSettlement(Document):
             "Return to Accountant": ("Pending Finance Review", "LSA Finance Approver"),
             "Return to Finance": ("Pending Operations Approval", "LSA Operations Manager"),
             "Return to Operations": ("Pending Director Approval", "LSA Executive Director"),
-            "Return to Director": ("Pending Treasurer Approval", "LSA Board Treasurer"),
-            "Return to Treasurer": ("Pending President Approval", "LSA President"),
+            "Return to Director": ("Pending Final Finance Review", "LSA Finance Approver"),
+            "Return to Final Finance": ("Pending Accountant Closing", "LSA Accountant"),
         }
         if action not in allowed_actions:
             frappe.throw("Invalid return action.")

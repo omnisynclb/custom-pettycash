@@ -8,8 +8,6 @@ APPROVER_ROLES = {
 	"LSA Finance Approver",
 	"LSA Operations Manager",
 	"LSA Executive Director",
-	"LSA Board Treasurer",
-	"LSA President",
 }
 
 

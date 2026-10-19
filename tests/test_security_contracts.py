@@ -87,7 +87,6 @@ class RepositoryContractTests(unittest.TestCase):
 			{
 				"LSA Center Officer", "LSA HR Manager", "LSA Accountant", "LSA Finance Approver",
 				"LSA Operations Manager", "LSA Executive Director",
-				"LSA Board Treasurer", "LSA President",
 			},
 		)
 
@@ -100,17 +99,17 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("LSA Finance Approver", roles)
 		self.assertIn("LSA HR Manager", roles)
 		self.assertIn("LSA Executive Director", roles)
-		self.assertIn("LSA Board Treasurer", roles)
-		self.assertIn("LSA President", roles)
+		self.assertNotIn("LSA Board Treasurer", roles)
+		self.assertNotIn("LSA President", roles)
 
-	def test_workflow_reaches_president_before_completion(self):
+	def test_workflow_reaches_finance_and_accountant_closing(self):
 		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
 		forward = {
 			(row["state"], row["next_state"])
 			for row in workflow["transitions"]
 			if row["action"] in {
 				"Submit for Accountant Review", "Approve", "Approve as Director",
-				"Approve as Treasurer", "Final Approve",
+				"Approve Final Finance Review", "Close Settlement",
 			}
 		}
 		self.assertEqual(
@@ -120,9 +119,9 @@ class RepositoryContractTests(unittest.TestCase):
 				("Pending Accountant Review", "Pending Finance Review"),
 				("Pending Finance Review", "Pending Operations Approval"),
 				("Pending Operations Approval", "Pending Director Approval"),
-				("Pending Director Approval", "Pending Treasurer Approval"),
-				("Pending Treasurer Approval", "Pending President Approval"),
-				("Pending President Approval", "Completed"),
+				("Pending Director Approval", "Pending Final Finance Review"),
+				("Pending Final Finance Review", "Pending Accountant Closing"),
+				("Pending Accountant Closing", "Completed"),
 			},
 		)
 
@@ -136,6 +135,17 @@ class RepositoryContractTests(unittest.TestCase):
 			and row["next_state"] == "Pending Accountant Review"
 		}
 		self.assertEqual(roles, {"LSA Center Officer", "LSA HR Manager"})
+
+	def test_retired_approval_states_are_migrated(self):
+		patch = (
+			ROOT / "center_expense_management/patches/v0_2/"
+			"migrate_closing_workflow_states.py"
+		).read_text()
+		self.assertIn('"Pending Treasurer Approval": "Pending Final Finance Review"', patch)
+		self.assertIn('"Pending President Approval": "Pending Accountant Closing"', patch)
+
+		patches = (ROOT / "center_expense_management/patches.txt").read_text()
+		self.assertIn("migrate_closing_workflow_states", patches)
 
 	def test_return_reason_hook_does_not_execute_workflow_twice(self):
 		client_script = (
@@ -235,7 +245,9 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("expense_business_values", controller)
 		self.assertNotIn('root_type: \'Expense\'', client)
 		self.assertNotIn('account.root_type != "Expense"', controller)
-		self.assertIn("state === 'Pending Finance Review'", client)
+		self.assertIn("'Pending Final Finance Review'", client)
+		self.assertIn('previous_state in {"Pending Finance Review", "Pending Final Finance Review"}', controller)
+		self.assertIn('"LSA Accountant" not in frappe.get_roles()', controller)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)
 		self.assertNotIn("self.amount = self.total_expenses", controller)

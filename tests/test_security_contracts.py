@@ -347,6 +347,10 @@ class RepositoryContractTests(unittest.TestCase):
 			"petty_cash_whish/petty_cash_whish.js"
 		).read_text()
 		self.assertIn("Send Whish Excel Now", whish_client)
+		self.assertIn("View Whish Excel", whish_client)
+		self.assertIn("show_whish_excel_preview", whish_client)
+		self.assertIn("frappe.utils.escape_html", whish_client)
+		self.assertIn("Salary received by the employee ( NET)", whish_client)
 		self.assertNotIn("Download Latest Excel", whish_client)
 		self.assertIn("has_value_changed(\"employees\")", whish_controller)
 		self.assertIn("generate_whish_excel_attachment", whish_controller)

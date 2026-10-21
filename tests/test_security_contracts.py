@@ -73,7 +73,10 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertTrue(workflow["transitions"])
 		for row in workflow["transitions"]:
 			with self.subTest(action=row["action"], state=row["state"]):
-				if row["action"] == "Submit for Accountant Review":
+				if (
+					row["action"] == "Submit for Accountant Review"
+					or row["allowed"] == "LSA Operations Manager"
+				):
 					self.assertTrue(row["allow_self_approval"])
 				else:
 					self.assertFalse(row["allow_self_approval"])
@@ -134,7 +137,56 @@ class RepositoryContractTests(unittest.TestCase):
 			and row["action"] == "Submit for Accountant Review"
 			and row["next_state"] == "Pending Accountant Review"
 		}
-		self.assertEqual(roles, {"LSA Center Officer", "LSA HR Manager"})
+		self.assertEqual(
+			roles,
+			{"LSA Center Officer", "LSA HR Manager", "LSA Operations Manager"},
+		)
+
+	def test_operations_manager_can_run_the_full_cycle(self):
+		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
+		forward_route = {
+			("Draft", "Pending Accountant Review"),
+			("Pending Accountant Review", "Pending Finance Review"),
+			("Pending Finance Review", "Pending Operations Approval"),
+			("Pending Operations Approval", "Pending Director Approval"),
+			("Pending Director Approval", "Pending Final Finance Review"),
+			("Pending Final Finance Review", "Pending Accountant Closing"),
+			("Pending Accountant Closing", "Completed"),
+		}
+		manager_transitions = {
+			(row["state"], row["next_state"])
+			for row in workflow["transitions"]
+			if row["allowed"] == "LSA Operations Manager"
+			and row["allow_self_approval"]
+		}
+		self.assertLessEqual(forward_route, manager_transitions)
+
+		manager_edit_states = {
+			row["state"]
+			for row in workflow["states"]
+			if row["allow_edit"] == "LSA Operations Manager"
+		}
+		self.assertEqual(
+			manager_edit_states,
+			{
+				"Draft", "Pending Accountant Review", "Pending Finance Review",
+				"Pending Operations Approval", "Pending Director Approval",
+				"Pending Final Finance Review", "Pending Accountant Closing", "Completed",
+			},
+		)
+
+		settlement = self.load_json(
+			"center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.json"
+		)
+		manager_perms = [
+			row for row in settlement["permissions"]
+			if row["role"] == "LSA Operations Manager"
+		]
+		self.assertTrue(any(row.get("create") and row.get("submit") for row in manager_perms))
+		self.assertTrue(
+			any(row.get("permlevel") == 1 and row.get("write") for row in manager_perms)
+		)
 
 	def test_retired_approval_states_are_migrated(self):
 		patch = (
@@ -247,7 +299,7 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertNotIn('account.root_type != "Expense"', controller)
 		self.assertIn("'Pending Final Finance Review'", client)
 		self.assertIn('previous_state in {"Pending Finance Review", "Pending Final Finance Review"}', controller)
-		self.assertIn('"LSA Accountant" not in frappe.get_roles()', controller)
+		self.assertIn('{"LSA Accountant", "LSA Operations Manager"}', controller)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)
 		self.assertNotIn("self.amount = self.total_expenses", controller)

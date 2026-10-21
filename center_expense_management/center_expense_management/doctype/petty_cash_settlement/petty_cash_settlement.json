@@ -320,10 +320,12 @@
    "write": 1
   },
   {
+   "create": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "LSA Operations Manager",
+   "submit": 1,
    "write": 1
   },
   {
@@ -353,7 +355,8 @@
   {
    "permlevel": 1,
    "read": 1,
-   "role": "LSA Operations Manager"
+   "role": "LSA Operations Manager",
+   "write": 1
   },
   {
    "permlevel": 1,

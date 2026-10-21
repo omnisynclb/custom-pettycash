@@ -357,8 +357,15 @@ class PettyCashSettlement(Document):
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
     def create_whish_journal_entry(self):
-        if frappe.session.user != "Administrator" and "LSA Accountant" not in frappe.get_roles():
-            frappe.throw("Only the Accountant may close the settlement and create payment.", frappe.PermissionError)
+        roles = set(frappe.get_roles())
+        if (
+            frappe.session.user != "Administrator"
+            and not ({"LSA Accountant", "LSA Operations Manager"} & roles)
+        ):
+            frappe.throw(
+                "Only the Accountant or Operations Manager may close the settlement and create payment.",
+                frappe.PermissionError,
+            )
         if self.payment_status == "Paid":
             frappe.throw(
                 "This Petty Cash Settlement has already been paid."
@@ -829,7 +836,11 @@ class PettyCashSettlement(Document):
             frappe.throw("Invalid return action.")
 
         expected_state, required_role = allowed_actions[action]
-        if self.workflow_state != expected_state or required_role not in frappe.get_roles():
+        roles = set(frappe.get_roles())
+        if (
+            self.workflow_state != expected_state
+            or not ({required_role, "LSA Operations Manager"} & roles)
+        ):
             frappe.throw("You cannot perform this return action.", frappe.PermissionError)
 
         if not reason or not reason.strip():

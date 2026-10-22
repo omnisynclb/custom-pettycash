@@ -14,8 +14,7 @@ fixtures = [
             "Pending Finance Review",
             "Pending Operations Approval",
             "Pending Director Approval",
-            "Pending Final Finance Review",
-            "Pending Accountant Closing",
+            "Approved for Whish Payment",
             "Completed",
         ]]],
     },
@@ -29,10 +28,6 @@ fixtures = [
             "Return to Finance",
             "Approve as Director",
             "Return to Operations",
-            "Return to Director",
-            "Approve Final Finance Review",
-            "Close Settlement",
-            "Return to Final Finance",
         ]]],
     },
     {
@@ -56,8 +51,14 @@ scheduler_events = {
     "daily": [
         "center_expense_management.tasks.create_monthly_petty_cash_whish",
         "center_expense_management.tasks.send_monthly_reminders",
-        "center_expense_management.tasks.send_scheduled_whish_excel",
     ]
+}
+
+doc_events = {
+    "Journal Entry": {
+        "on_submit": "center_expense_management.customizations.close_petty_cash_payment",
+        "on_cancel": "center_expense_management.customizations.reopen_petty_cash_payment",
+    }
 }
 
 after_migrate = [

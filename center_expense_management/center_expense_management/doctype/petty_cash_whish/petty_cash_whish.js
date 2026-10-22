@@ -7,30 +7,69 @@ frappe.ui.form.on('Petty Cash Whish', {
             .some(role => frappe.user_roles.includes(role));
 
         if (!frm.is_new()) {
-            frm.add_custom_button(__('View Whish Excel'), function() {
+            frm.add_custom_button(__('Excel'), function() {
                 if (frm.is_dirty()) {
                     frappe.msgprint(__('Save the Whish Payment Batch before viewing its Excel preview.'));
                     return;
                 }
                 show_whish_excel_preview(frm);
-            });
+            }, __('View'));
+
+            frm.add_custom_button(__('PDF Letter'), function() {
+                if (frm.is_dirty()) {
+                    frappe.msgprint(__('Save the Whish Payment Batch before viewing its PDF letter.'));
+                    return;
+                }
+                show_whish_pdf_preview(frm);
+            }, __('View'));
         }
 
         if (!frm.is_new() && can_send) {
-            frm.add_custom_button(__('Send Whish Excel Now'), function() {
+            frm.add_custom_button(__('Send Whish Payment Email'), function() {
                 frappe.call({
                     method: 'center_expense_management.tasks.send_whish_excel_now',
                     args: { whish_name: frm.doc.name },
                     freeze: true,
-                    freeze_message: __('Generating and sending Whish Excel...')
+                    freeze_message: __('Generating the Excel and PDF, creating draft Journal Entries, and sending the email...')
                 }).then(function() {
                     frm.reload_doc();
-                    frappe.show_alert({message: __('Whish Excel sent.'), indicator: 'green'});
+                    frappe.show_alert({message: __('Whish payment email sent and draft Journal Entries created.'), indicator: 'green'});
                 });
             });
         }
     }
 });
+
+function show_whish_pdf_preview(frm) {
+    frappe.call({
+        method: 'center_expense_management.tasks.get_whish_pdf_preview',
+        args: { whish_name: frm.doc.name },
+        freeze: true,
+        freeze_message: __('Generating payment letter preview...')
+    }).then(function(response) {
+        const file_url = String(response.message || '');
+        if (!file_url.startsWith('/private/files/')) {
+            frappe.throw(__('Could not generate the private PDF preview.'));
+        }
+
+        const separator = file_url.includes('?') ? '&' : '?';
+        const preview_url = `${file_url}${separator}v=${Date.now()}`;
+        const dialog = new frappe.ui.Dialog({
+            title: __('Whish PDF Letter - {0}', [frm.doc.name]),
+            size: 'extra-large',
+            fields: [{fieldname: 'preview', fieldtype: 'HTML'}],
+            primary_action_label: __('Close'),
+            primary_action: function() { dialog.hide(); }
+        });
+        dialog.fields_dict.preview.$wrapper.html(`
+            <iframe
+                src="${frappe.utils.escape_html(preview_url)}"
+                title="${frappe.utils.escape_html(__('Whish PDF Letter'))}"
+                style="width:100%;height:72vh;border:1px solid var(--border-color);border-radius:6px;"
+            ></iframe>`);
+        dialog.show();
+    });
+}
 
 function show_whish_excel_preview(frm) {
     const escape = value => frappe.utils.escape_html(String(value == null ? '' : value));

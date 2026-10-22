@@ -9,6 +9,7 @@
   "month_and_year",
   "employees",
   "excel_file",
+  "pdf_file",
   "excel_email_sent_on"
  ],
  "fields": [
@@ -19,9 +20,15 @@
    "read_only": 1
   },
   {
+   "fieldname": "pdf_file",
+   "fieldtype": "Attach",
+   "label": "Whish Payment Letter PDF",
+   "read_only": 1
+  },
+  {
    "fieldname": "excel_email_sent_on",
    "fieldtype": "Datetime",
-   "label": "Excel Email Sent On",
+   "label": "Payment Email Sent On",
    "read_only": 1
   },
   {

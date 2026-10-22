@@ -27,7 +27,7 @@ class PettyCashWhish(Document):
             return
 
         frappe.enqueue(
-            "center_expense_management.tasks.generate_whish_excel_attachment",
+            "center_expense_management.tasks.generate_whish_attachments",
             queue="short",
             enqueue_after_commit=True,
             deduplicate=True,

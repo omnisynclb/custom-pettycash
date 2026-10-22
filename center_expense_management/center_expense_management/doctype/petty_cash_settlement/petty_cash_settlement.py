@@ -53,7 +53,7 @@ class PettyCashSettlement(Document):
         self.calculate_totals()
         self.validate_finance_account()
 
-        if self.workflow_state == "Completed":
+        if self.workflow_state in {"Approved for Whish Payment", "Completed"}:
             if self.payment_method != "Whish":
                 frappe.throw("Payment Method must be Whish before completion.")
 
@@ -91,19 +91,8 @@ class PettyCashSettlement(Document):
         )
 
     def on_update(self):
-        if (
-            self.workflow_state == "Completed"
-            and self.has_value_changed("workflow_state")
-        ):
-            self.create_whish_journal_entry()
-            frappe.enqueue(
-                "center_expense_management.tasks.generate_whish_excel_attachment",
-                queue="short",
-                enqueue_after_commit=True,
-                deduplicate=True,
-                job_id=f"petty-cash-whish-{self.name}",
-                payment_date=self.payment_date,
-            )
+        if self.workflow_state == "Approved for Whish Payment" and self.has_value_changed("workflow_state"):
+            self.update_petty_cash_whish()
 
     def on_cancel(self):
         self.cancel_payment_artifacts()
@@ -133,7 +122,7 @@ class PettyCashSettlement(Document):
             if previous_state == "Draft"
             else set()
         )
-        if previous_state in {"Pending Finance Review", "Pending Final Finance Review"}:
+        if previous_state == "Pending Finance Review":
             allowed = {"account", "payment_method"}
 
         changed = {
@@ -185,10 +174,8 @@ class PettyCashSettlement(Document):
         previous_state = self._doc_before_save.get("workflow_state")
 
         if (
-            (previous_state, self.workflow_state) in {
-                ("Pending Finance Review", "Pending Operations Approval"),
-                ("Pending Final Finance Review", "Pending Accountant Closing"),
-            }
+            (previous_state, self.workflow_state)
+            == ("Pending Finance Review", "Pending Operations Approval")
         ):
             if not self.account:
                 frappe.throw("Finance must select an Account before approving the settlement.")
@@ -213,12 +200,7 @@ class PettyCashSettlement(Document):
                 "A Petty Cash Settlement already exists for this Center Officer and month."
             )
     def update_petty_cash_whish(self):
-        if not self.payment_date:
-            return
-
-        # Convert payment date to the first day of that month.
-        # Example: 2026-09-16 -> 2026-09-01
-        whish_month = frappe.utils.get_first_day(self.payment_date)
+        whish_month = frappe.utils.get_first_day(self.month)
 
         # The scheduler normally creates this batch. Create it on demand as a
         # fallback so final approval never depends on scheduler timing.
@@ -356,25 +338,17 @@ class PettyCashSettlement(Document):
             frappe.throw(
                 "Total Expenses cannot exceed the Petty Cash Limit."
             )
-    def create_whish_journal_entry(self):
-        roles = set(frappe.get_roles())
-        if (
-            frappe.session.user != "Administrator"
-            and not ({"LSA Accountant", "LSA Operations Manager"} & roles)
-        ):
-            frappe.throw(
-                "Only the Accountant or Operations Manager may close the settlement and create payment.",
-                frappe.PermissionError,
-            )
+    def create_draft_whish_journal_entry(self):
         if self.payment_status == "Paid":
             frappe.throw(
                 "This Petty Cash Settlement has already been paid."
             )
 
         if self.journal_entry:
-            frappe.throw(
-                "A Journal Entry is already linked to this settlement."
-            )
+            status = frappe.db.get_value("Journal Entry", self.journal_entry, "docstatus")
+            if status in (0, 1):
+                return self.journal_entry
+            self.db_set("journal_entry", None, update_modified=False)
 
         if self.payment_method != "Whish":
             frappe.throw(
@@ -402,8 +376,7 @@ class PettyCashSettlement(Document):
                 "before final approval. Group Cost Centers cannot be used in Journal Entries."
             )
 
-        self.payment_date = frappe.utils.today()
-        self.db_set("payment_date", self.payment_date)
+        posting_date = frappe.utils.today()
 
         whish_account = frappe.db.get_value(
             "Account",
@@ -454,7 +427,7 @@ class PettyCashSettlement(Document):
 
         journal_entry = frappe.new_doc("Journal Entry")
 
-        journal_entry.posting_date = self.payment_date
+        journal_entry.posting_date = posting_date
         journal_entry.company = company
         employee_name = frappe.db.get_value("Employee", self.center_officer, "employee_name")
         journal_entry.user_remark = (
@@ -483,11 +456,9 @@ class PettyCashSettlement(Document):
 
         journal_entry.flags.ignore_permissions = True
         journal_entry.insert()
-        journal_entry.submit()
 
         self.db_set("journal_entry", journal_entry.name)
-        self.db_set("payment_status", "Paid")
-        self.update_petty_cash_whish()
+        self.db_set("payment_status", "Pending Journal Entry")
 
         return journal_entry.name
 
@@ -829,8 +800,6 @@ class PettyCashSettlement(Document):
             "Return to Accountant": ("Pending Finance Review", "LSA Finance Approver"),
             "Return to Finance": ("Pending Operations Approval", "LSA Operations Manager"),
             "Return to Operations": ("Pending Director Approval", "LSA Executive Director"),
-            "Return to Director": ("Pending Final Finance Review", "LSA Finance Approver"),
-            "Return to Final Finance": ("Pending Accountant Closing", "LSA Accountant"),
         }
         if action not in allowed_actions:
             frappe.throw("Invalid return action.")

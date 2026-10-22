@@ -105,14 +105,13 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertNotIn("LSA Board Treasurer", roles)
 		self.assertNotIn("LSA President", roles)
 
-	def test_workflow_reaches_finance_and_accountant_closing(self):
+	def test_workflow_reaches_manual_whish_payment_stage(self):
 		workflow = self.load_json("center_expense_management/fixtures/workflow.json")[0]
 		forward = {
 			(row["state"], row["next_state"])
 			for row in workflow["transitions"]
 			if row["action"] in {
 				"Submit for Accountant Review", "Approve", "Approve as Director",
-				"Approve Final Finance Review", "Close Settlement",
 			}
 		}
 		self.assertEqual(
@@ -122,9 +121,7 @@ class RepositoryContractTests(unittest.TestCase):
 				("Pending Accountant Review", "Pending Finance Review"),
 				("Pending Finance Review", "Pending Operations Approval"),
 				("Pending Operations Approval", "Pending Director Approval"),
-				("Pending Director Approval", "Pending Final Finance Review"),
-				("Pending Final Finance Review", "Pending Accountant Closing"),
-				("Pending Accountant Closing", "Completed"),
+				("Pending Director Approval", "Approved for Whish Payment"),
 			},
 		)
 
@@ -149,9 +146,7 @@ class RepositoryContractTests(unittest.TestCase):
 			("Pending Accountant Review", "Pending Finance Review"),
 			("Pending Finance Review", "Pending Operations Approval"),
 			("Pending Operations Approval", "Pending Director Approval"),
-			("Pending Director Approval", "Pending Final Finance Review"),
-			("Pending Final Finance Review", "Pending Accountant Closing"),
-			("Pending Accountant Closing", "Completed"),
+			("Pending Director Approval", "Approved for Whish Payment"),
 		}
 		manager_transitions = {
 			(row["state"], row["next_state"])
@@ -171,7 +166,7 @@ class RepositoryContractTests(unittest.TestCase):
 			{
 				"Draft", "Pending Accountant Review", "Pending Finance Review",
 				"Pending Operations Approval", "Pending Director Approval",
-				"Pending Final Finance Review", "Pending Accountant Closing", "Completed",
+				"Approved for Whish Payment", "Completed",
 			},
 		)
 
@@ -198,6 +193,7 @@ class RepositoryContractTests(unittest.TestCase):
 
 		patches = (ROOT / "center_expense_management/patches.txt").read_text()
 		self.assertIn("migrate_closing_workflow_states", patches)
+		self.assertIn("migrate_whish_payment_workflow", patches)
 
 	def test_return_reason_hook_does_not_execute_workflow_twice(self):
 		client_script = (
@@ -227,8 +223,16 @@ class RepositoryContractTests(unittest.TestCase):
 		)
 		self.assertTrue(settings["issingle"])
 		self.assertIn("whish_email", {field["fieldname"] for field in settings["fields"]})
-		self.assertIn("whish_send_day", {field["fieldname"] for field in settings["fields"]})
 		self.assertIn("enable_automatic_whish_email", {field["fieldname"] for field in settings["fields"]})
+		fields = {field["fieldname"]: field for field in settings["fields"]}
+		self.assertEqual(fields["enable_automatic_whish_email"]["default"], "0")
+		self.assertTrue(fields["enable_automatic_whish_email"]["read_only"])
+		for fieldname in (
+			"whish_email_subject", "whish_email_message", "letter_title", "addressed_to",
+			"letter_text", "signature_1_name", "signature_2_name",
+			"signature_1_role", "signature_2_role", "signature_1_image", "signature_2_image",
+		):
+			self.assertIn(fieldname, fields)
 
 		expense = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"
@@ -297,9 +301,8 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("expense_business_values", controller)
 		self.assertNotIn('root_type: \'Expense\'', client)
 		self.assertNotIn('account.root_type != "Expense"', controller)
-		self.assertIn("'Pending Final Finance Review'", client)
-		self.assertIn('previous_state in {"Pending Finance Review", "Pending Final Finance Review"}', controller)
-		self.assertIn('{"LSA Accountant", "LSA Operations Manager"}', controller)
+		self.assertNotIn("'Pending Final Finance Review'", client)
+		self.assertIn('previous_state == "Pending Finance Review"', controller)
 		self.assertIn("frm.toggle_display('payment_information_section'", client)
 		self.assertIn("frm.toggle_display('expense_account_section'", client)
 		self.assertNotIn("self.amount = self.total_expenses", controller)
@@ -338,22 +341,29 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn('"is_private": 1', tasks)
 		self.assertIn('attachment_name = f"{whish.name}-v{file_version}.xlsx"', tasks)
 		self.assertIn("def send_scheduled_whish_excel():", tasks)
+		self.assertIn("Retained as a safe no-op", tasks)
 		self.assertIn("def send_whish_excel_now(whish_name):", tasks)
 		self.assertIn("def generate_whish_excel_attachment", tasks)
+		self.assertIn("def generate_whish_pdf_attachment", tasks)
+		self.assertIn("def get_whish_pdf_preview", tasks)
+		self.assertIn('"pdf": generate_whish_pdf_attachment', tasks)
+		self.assertIn("period_start = add_days(get_first_day(month), -10)", tasks)
 		self.assertIn("refreshes the attachment only and never sends an email", tasks)
 
 		whish_client = (
 			ROOT / "center_expense_management/center_expense_management/doctype/"
 			"petty_cash_whish/petty_cash_whish.js"
 		).read_text()
-		self.assertIn("Send Whish Excel Now", whish_client)
-		self.assertIn("View Whish Excel", whish_client)
+		self.assertIn("Send Whish Payment Email", whish_client)
+		self.assertIn("__('Excel')", whish_client)
+		self.assertIn("__('PDF Letter')", whish_client)
+		self.assertIn(", __('View'))", whish_client)
 		self.assertIn("show_whish_excel_preview", whish_client)
 		self.assertIn("frappe.utils.escape_html", whish_client)
 		self.assertIn("Salary received by the employee ( NET)", whish_client)
 		self.assertNotIn("Download Latest Excel", whish_client)
 		self.assertIn("has_value_changed(\"employees\")", whish_controller)
-		self.assertIn("generate_whish_excel_attachment", whish_controller)
+		self.assertIn("generate_whish_attachments", whish_controller)
 
 	def test_no_hard_coded_whish_account(self):
 		controller = (
@@ -372,6 +382,8 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn('"petty_cash_settlement"', customizations)
 		self.assertIn('"petty_cash_center_officer"', customizations)
 		self.assertIn('"petty_cash_center_officer_name"', customizations)
+		self.assertIn('"workflow_state": "Completed"', customizations)
+		self.assertIn('"workflow_state": "Approved for Whish Payment"', customizations)
 
 	def test_professional_configuration_naming_and_whish_workspace_link(self):
 		configuration = self.load_json(
@@ -402,6 +414,10 @@ class RepositoryContractTests(unittest.TestCase):
 			if item.get("link_to") == "Journal Entry"
 		]
 		self.assertEqual(len(journal_links), 1)
+		self.assertEqual(
+			json.loads(journal_links[0]["route_options"]),
+			{"petty_cash_settlement": ["is", "set"]},
+		)
 
 		whish = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"

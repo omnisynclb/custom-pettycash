@@ -33,7 +33,7 @@
  "shortcuts": [
   {"color": "Blue", "doc_view": "List", "format": "", "icon": "file-text", "label": "Petty Cash Settlements", "link_to": "Petty Cash Settlement", "stats_filter": "", "type": "DocType"},
   {"color": "Green", "doc_view": "List", "format": "", "icon": "credit-card", "label": "Whish Payment Batches", "link_to": "Petty Cash Whish", "stats_filter": "", "type": "DocType"},
-  {"color": "Orange", "doc_view": "List", "format": "", "icon": "book-open", "label": "Journal Entries", "link_to": "Journal Entry", "stats_filter": "", "type": "DocType"}
+  {"color": "Orange", "doc_view": "List", "format": "", "icon": "book-open", "label": "Journal Entries", "link_to": "Journal Entry", "stats_filter": "[[\"Journal Entry\",\"petty_cash_settlement\",\"is\",\"set\",false]]", "type": "DocType"}
  ],
  "title": "Petty Cash",
  "type": "Workspace"

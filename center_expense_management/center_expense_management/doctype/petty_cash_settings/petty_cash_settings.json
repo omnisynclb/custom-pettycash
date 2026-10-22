@@ -3,15 +3,37 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
+  "reminders_tab",
   "enable_monthly_reminders",
   "reminder_day",
-  "whish_email",
-  "enable_automatic_whish_email",
-  "whish_send_day",
   "reminder_subject",
-  "reminder_message"
+  "reminder_message",
+  "whish_mail_tab",
+  "whish_email",
+  "whish_email_subject",
+  "whish_email_message",
+  "enable_automatic_whish_email",
+  "letter_section",
+  "letter_logo",
+  "letter_title",
+  "addressed_to",
+  "letter_text",
+  "signatures_section",
+  "date_under_signature",
+  "signature_1_name",
+  "signature_column",
+  "signature_2_name",
+  "signature_1_role",
+  "signature_2_role",
+  "signature_1_image",
+  "signature_2_image"
  ],
  "fields": [
+  {
+   "fieldname": "reminders_tab",
+   "fieldtype": "Tab Break",
+   "label": "Settlement Reminders"
+  },
   {
    "default": "1",
    "fieldname": "enable_monthly_reminders",
@@ -27,7 +49,7 @@
    "reqd": 1
   },
   {
-   "description": "Receives the automatically generated monthly Whish Excel file.",
+   "description": "Receives the manually sent Whish Excel and payment letter PDF.",
    "fieldname": "whish_email",
    "fieldtype": "Data",
    "label": "Whish Email",
@@ -35,18 +57,17 @@
    "reqd": 1
   },
   {
-   "default": "1",
+   "default": "0",
+   "description": "Automatic sending is disabled. Finance sends each reviewed batch manually.",
    "fieldname": "enable_automatic_whish_email",
    "fieldtype": "Check",
-   "label": "Enable Automatic Whish Email"
+   "label": "Enable Automatic Whish Email",
+   "read_only": 1
   },
   {
-   "default": "21",
-   "description": "The completed monthly Whish workbook is emailed once on this day.",
-   "fieldname": "whish_send_day",
-   "fieldtype": "Int",
-   "label": "Whish Send Day",
-   "reqd": 1
+   "fieldname": "whish_mail_tab",
+   "fieldtype": "Tab Break",
+   "label": "Whish Email & Letter"
   },
   {
    "default": "Monthly Petty Cash Request Reminder",
@@ -61,6 +82,110 @@
    "fieldtype": "Small Text",
    "label": "Reminder Message",
    "reqd": 1
+  },
+  {
+   "default": "Petty Cash Payment Transfer Request - {month}",
+   "fieldname": "whish_email_subject",
+   "fieldtype": "Data",
+   "label": "Email Subject",
+   "reqd": 1
+  },
+  {
+   "default": "Dear Whish Team,\n\nPlease find attached the payment transfer request letter and Excel beneficiary list for {month}.",
+   "fieldname": "whish_email_message",
+   "fieldtype": "Small Text",
+   "label": "Email Message",
+   "reqd": 1
+  },
+  {
+   "fieldname": "letter_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Letter"
+  },
+  {
+   "description": "Optional. If empty, the Company logo is used.",
+   "fieldname": "letter_logo",
+   "fieldtype": "Attach Image",
+   "label": "Letter Logo",
+   "permlevel": 1
+  },
+  {
+   "default": "Salary Payment Transfer Request",
+   "fieldname": "letter_title",
+   "fieldtype": "Data",
+   "label": "Letter Title",
+   "permlevel": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Whish Money",
+   "fieldname": "addressed_to",
+   "fieldtype": "Data",
+   "label": "Addressed To",
+   "permlevel": 1,
+   "reqd": 1
+  },
+  {
+   "default": "Dear Sir/Madam,\n\nPlease transfer a total amount of {amount} ({amount_in_words}) to the {beneficiaries} beneficiaries listed in the attached payment file, for the payment period {period}.\n\nThe detailed list of beneficiaries follows this letter and is also attached as an Excel file.\n\nKind regards,",
+   "description": "Placeholders: {amount}, {amount_in_words}, {currency}, {period}, {month}, {beneficiaries}, {reference}, {date}.",
+   "fieldname": "letter_text",
+   "fieldtype": "Long Text",
+   "label": "Letter Text",
+   "permlevel": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "signatures_section",
+   "fieldtype": "Section Break",
+   "label": "Signatures"
+  },
+  {
+   "default": "Blank line",
+   "fieldname": "date_under_signature",
+   "fieldtype": "Select",
+   "label": "Date Under Each Signature",
+   "options": "Blank line\nCurrent date",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_1_name",
+   "fieldtype": "Data",
+   "label": "Signatory 1 Name",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "signature_2_name",
+   "fieldtype": "Data",
+   "label": "Signatory 2 Name",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_1_role",
+   "fieldtype": "Data",
+   "label": "Signatory 1 Role / Title",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_2_role",
+   "fieldtype": "Data",
+   "label": "Signatory 2 Role / Title",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_1_image",
+   "fieldtype": "Attach Image",
+   "label": "Signatory 1 Signature Image",
+   "permlevel": 1
+  },
+  {
+   "fieldname": "signature_2_image",
+   "fieldtype": "Attach Image",
+   "label": "Signatory 2 Signature Image",
+   "permlevel": 1
   }
  ],
  "issingle": 1,
@@ -70,6 +195,12 @@
  "permissions": [
   {
    "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  },
+  {
+   "permlevel": 1,
    "read": 1,
    "role": "System Manager",
    "write": 1

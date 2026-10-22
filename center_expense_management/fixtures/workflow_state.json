@@ -4,7 +4,6 @@
  {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Finance Review", "style": "Warning", "workflow_state_name": "Pending Finance Review"},
  {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Operations Approval", "style": "Warning", "workflow_state_name": "Pending Operations Approval"},
  {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Director Approval", "style": "Warning", "workflow_state_name": "Pending Director Approval"},
- {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Final Finance Review", "style": "Warning", "workflow_state_name": "Pending Final Finance Review"},
- {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Pending Accountant Closing", "style": "Info", "workflow_state_name": "Pending Accountant Closing"},
+ {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Approved for Whish Payment", "style": "Success", "workflow_state_name": "Approved for Whish Payment"},
  {"docstatus": 0, "doctype": "Workflow State", "icon": "", "name": "Completed", "style": "Success", "workflow_state_name": "Completed"}
 ]

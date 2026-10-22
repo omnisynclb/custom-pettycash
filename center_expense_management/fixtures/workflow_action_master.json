@@ -5,9 +5,5 @@
  {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Accountant", "workflow_action_name": "Return to Accountant"},
  {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Finance", "workflow_action_name": "Return to Finance"},
  {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Approve as Director", "workflow_action_name": "Approve as Director"},
- {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Operations", "workflow_action_name": "Return to Operations"},
- {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Director", "workflow_action_name": "Return to Director"},
- {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Approve Final Finance Review", "workflow_action_name": "Approve Final Finance Review"},
- {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Close Settlement", "workflow_action_name": "Close Settlement"},
- {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Final Finance", "workflow_action_name": "Return to Final Finance"}
+ {"docstatus": 0, "doctype": "Workflow Action Master", "name": "Return to Operations", "workflow_action_name": "Return to Operations"}
 ]

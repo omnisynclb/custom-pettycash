@@ -55,10 +55,7 @@ frappe.ui.form.on('Petty Cash Settlement', {
         frm.set_df_property('amount', 'read_only', 1);
         frm.set_df_property('payment_date', 'read_only', 1);
 
-        if ([
-            'Pending Finance Review',
-            'Pending Final Finance Review'
-        ].includes(frm.doc.workflow_state) && frm.doc.account) {
+        if (frm.doc.workflow_state === 'Pending Finance Review' && frm.doc.account) {
             load_account_balance(frm);
         }
     },
@@ -87,9 +84,7 @@ frappe.ui.form.on('Petty Cash Settlement', {
          'Return to Center Officer',
          'Return to Accountant',
          'Return to Finance',
-         'Return to Operations',
-         'Return to Director',
-         'Return to Final Finance'
+         'Return to Operations'
         ];
 
        if (return_actions.includes(frm.selected_workflow_action)) {
@@ -208,14 +203,10 @@ function configure_account_information(frm) {
         'Pending Finance Review',
         'Pending Operations Approval',
         'Pending Director Approval',
-        'Pending Final Finance Review',
-        'Pending Accountant Closing',
+        'Approved for Whish Payment',
         'Completed'
     ];
-    const finance_can_edit = [
-        'Pending Finance Review',
-        'Pending Final Finance Review'
-    ].includes(state);
+    const finance_can_edit = state === 'Pending Finance Review';
 
     frm.toggle_display('expense_account_section', visible_states.includes(state));
     frm.set_df_property('account', 'read_only', !finance_can_edit);
@@ -227,14 +218,10 @@ function configure_payment_information(frm) {
         'Pending Finance Review',
         'Pending Operations Approval',
         'Pending Director Approval',
-        'Pending Final Finance Review',
-        'Pending Accountant Closing',
+        'Approved for Whish Payment',
         'Completed'
     ];
-    const finance_can_edit = [
-        'Pending Finance Review',
-        'Pending Final Finance Review'
-    ].includes(state);
+    const finance_can_edit = state === 'Pending Finance Review';
 
     frm.toggle_display('payment_information_section', visible_states.includes(state));
     frm.set_df_property('payment_method', 'read_only', !finance_can_edit);

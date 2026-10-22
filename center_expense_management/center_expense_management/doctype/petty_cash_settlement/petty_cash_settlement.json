@@ -239,7 +239,7 @@
    "fieldname": "payment_status",
    "fieldtype": "Select",
    "label": "Payment Status",
-   "options": "Unpaid\nPaid",
+   "options": "Unpaid\nPending Journal Entry\nPaid",
    "read_only": 1
   },
   {

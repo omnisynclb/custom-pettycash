@@ -63,3 +63,33 @@ def sync_journal_entry_fields():
 			},
 			update_modified=False,
 		)
+
+
+def close_petty_cash_payment(doc, method=None):
+	if not doc.get("petty_cash_settlement"):
+		return
+	frappe.db.set_value(
+		"Petty Cash Settlement",
+		doc.petty_cash_settlement,
+		{
+			"workflow_state": "Completed",
+			"payment_status": "Paid",
+			"payment_date": doc.posting_date,
+		},
+		update_modified=False,
+	)
+
+
+def reopen_petty_cash_payment(doc, method=None):
+	if not doc.get("petty_cash_settlement"):
+		return
+	frappe.db.set_value(
+		"Petty Cash Settlement",
+		doc.petty_cash_settlement,
+		{
+			"workflow_state": "Approved for Whish Payment",
+			"payment_status": "Pending Journal Entry",
+			"payment_date": None,
+		},
+		update_modified=False,
+	)

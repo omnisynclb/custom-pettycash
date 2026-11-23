@@ -5,7 +5,7 @@ from io import BytesIO
 import frappe
 from frappe.utils import (
     add_days, cint, escape_html, fmt_money, formatdate, get_first_day,
-    getdate, money_in_words, now_datetime, today,
+    get_url_to_list, getdate, money_in_words, now_datetime, today,
 )
 from frappe.utils.pdf import get_pdf
 from openpyxl import Workbook
@@ -84,7 +84,7 @@ def send_monthly_reminders(force=0):
         frappe.sendmail(
             recipients=[recipient],
             subject=settings.reminder_subject,
-            message=f"<p>{frappe.utils.escape_html(settings.reminder_message)}</p>",
+            message=_build_settlement_reminder_message(settings.reminder_message),
         )
         frappe.db.set_value(
             "Petty Cash Configuration",
@@ -95,6 +95,24 @@ def send_monthly_reminders(force=0):
         sent += 1
 
     return sent
+
+
+def _build_settlement_reminder_message(message):
+    settlement_url = get_url_to_list("Petty Cash Settlement")
+    body = escape_html(message or "").replace("\n", "<br>")
+    return f"""
+        <p>{body}</p>
+        <p style="margin: 24px 0;">
+            <a href="{escape_html(settlement_url)}"
+               style="background:#171717;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block;">
+                Open Petty Cash Settlement
+            </a>
+        </p>
+        <p style="font-size:12px;color:#6b7280;">
+            If the button does not open, use this link:<br>
+            <a href="{escape_html(settlement_url)}">{escape_html(settlement_url)}</a>
+        </p>
+    """
 
 
 def _employee_email(employee):

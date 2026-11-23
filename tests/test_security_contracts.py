@@ -473,6 +473,12 @@ class RepositoryContractTests(unittest.TestCase):
 			self.assertIn(permission, customizations)
 		self.assertIn('"delete": 0', customizations)
 
+	def test_reminder_email_contains_settlement_link(self):
+		tasks = (ROOT / "center_expense_management/tasks.py").read_text()
+		self.assertIn('get_url_to_list("Petty Cash Settlement")', tasks)
+		self.assertIn("_build_settlement_reminder_message(settings.reminder_message)", tasks)
+		self.assertIn("Open Petty Cash Settlement", tasks)
+
 
 if __name__ == "__main__":
 	unittest.main()

@@ -4,33 +4,34 @@ from frappe.permissions import add_permission
 
 
 def sync_supplier_permissions():
-	"""Allow LSA Accountants to maintain suppliers without broad purchasing roles."""
-	filters = {
-		"parent": "Supplier",
-		"role": "LSA Accountant",
-		"permlevel": 0,
-		"if_owner": 0,
-	}
-	permission_name = frappe.db.get_value("Custom DocPerm", filters, "name")
-	if not permission_name:
-		add_permission("Supplier", "LSA Accountant", permlevel=0, ptype="read")
+	"""Allow petty-cash users to maintain suppliers without broad purchasing roles."""
+	for role in ("LSA Accountant", "LSA Center Officer"):
+		filters = {
+			"parent": "Supplier",
+			"role": role,
+			"permlevel": 0,
+			"if_owner": 0,
+		}
 		permission_name = frappe.db.get_value("Custom DocPerm", filters, "name")
+		if not permission_name:
+			add_permission("Supplier", role, permlevel=0, ptype="read")
+			permission_name = frappe.db.get_value("Custom DocPerm", filters, "name")
 
-	frappe.db.set_value(
-		"Custom DocPerm",
-		permission_name,
-		{
-			"select": 1,
-			"read": 1,
-			"write": 1,
-			"create": 1,
-			"report": 1,
-			"print": 1,
-			"email": 1,
-			"delete": 0,
-		},
-		update_modified=False,
-	)
+		frappe.db.set_value(
+			"Custom DocPerm",
+			permission_name,
+			{
+				"select": 1,
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"report": 1,
+				"print": 1,
+				"email": 1,
+				"delete": 0,
+			},
+			update_modified=False,
+		)
 	frappe.clear_cache(doctype="Supplier")
 
 

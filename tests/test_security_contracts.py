@@ -463,11 +463,12 @@ class RepositoryContractTests(unittest.TestCase):
 		hooks = (ROOT / "center_expense_management/hooks.py").read_text()
 		self.assertIn('required_apps = ["erpnext", "custom_lsa"]', hooks)
 
-	def test_accountant_supplier_permission_is_installed(self):
+	def test_petty_cash_user_supplier_permissions_are_installed(self):
 		hooks = (ROOT / "center_expense_management/hooks.py").read_text()
 		customizations = (ROOT / "center_expense_management/customizations.py").read_text()
 		self.assertIn("customizations.sync_supplier_permissions", hooks)
-		self.assertIn('add_permission("Supplier", "LSA Accountant"', customizations)
+		self.assertIn('(\"LSA Accountant\", \"LSA Center Officer\")', customizations)
+		self.assertIn('add_permission("Supplier", role', customizations)
 		for permission in ('"select": 1', '"read": 1', '"write": 1', '"create": 1'):
 			self.assertIn(permission, customizations)
 		self.assertIn('"delete": 0', customizations)

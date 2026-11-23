@@ -253,25 +253,11 @@ function load_petty_cash_configuration(frm) {
         return;
     }
 
-    frappe.db.get_list('Petty Cash Configuration', {
-        filters: {
-            center_officer: frm.doc.center_officer
-        },
-        fields: [
-            'cost_center',
-            'petty_cash_account',
-            'petty_cash_limit'
-        ],
-        limit: 1
-    }).then(function(records) {
-        if (records.length === 0) {
-            frappe.msgprint(
-                __('No Petty Cash Configuration was found for this Center Officer.')
-            );
+    frm.call('load_petty_cash_configuration').then(function(response) {
+        const config = response.message;
+        if (!config) {
             return;
         }
-
-        let config = records[0];
 
         frm.set_value('cost_center', config.cost_center);
         frm.set_value('petty_cash_account', config.petty_cash_account);

@@ -309,6 +309,23 @@ class RepositoryContractTests(unittest.TestCase):
 		self.assertIn("load_account_balance(frm);", client)
 		self.assertNotIn("generate_and_email_settlement_report", controller)
 
+	def test_center_officer_configuration_is_loaded_through_secured_document_method(self):
+		controller = (
+			ROOT
+			/ "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.py"
+		).read_text()
+		client = (
+			ROOT
+			/ "center_expense_management/center_expense_management/doctype/"
+			"petty_cash_settlement/petty_cash_settlement.js"
+		).read_text()
+		self.assertIn("@frappe.whitelist()\n    def load_petty_cash_configuration", controller)
+		self.assertIn("self.bind_center_officer_to_user()", controller)
+		self.assertIn("return config", controller)
+		self.assertIn("frm.call('load_petty_cash_configuration')", client)
+		self.assertNotIn("frappe.db.get_list('Petty Cash Configuration'", client)
+
 	def test_whish_grid_and_excel_contract(self):
 		whish_employee = self.load_json(
 			"center_expense_management/center_expense_management/doctype/"

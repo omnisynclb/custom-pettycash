@@ -236,7 +236,13 @@ class PettyCashSettlement(Document):
         whish.flags.ignore_permissions = True
         whish.save()
 
+    @frappe.whitelist()
     def load_petty_cash_configuration(self):
+        # The Configuration DocType is intentionally restricted to System
+        # Managers. Return only the configuration applicable to this settlement
+        # instead of granting Center Officers access to every configuration.
+        self.bind_center_officer_to_user()
+
         before = self.get_doc_before_save()
         if before and (before.workflow_state or "Draft") != "Draft":
             return
@@ -264,6 +270,8 @@ class PettyCashSettlement(Document):
         self.whish_phone_number = config.whish_phone_number
         self.whish_id = config.whish_id
         self.currency = config.currency
+
+        return config
 
     @frappe.whitelist()
     def load_account_balance(self):

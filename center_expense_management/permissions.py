@@ -44,8 +44,21 @@ def settlement_has_permission(doc, user=None, permission_type=None):
 
 	if "LSA Center Officer" not in _roles(user):
 		return False
-	if permission_type == "create":
-		return True
 
 	employee = employee_for_user(user)
+	if permission_type == "create":
+		return bool(employee)
+
+	# Receipt uploads happen before the first save and Frappe checks `write`
+	# against a temporary `new-petty-cash-settlement-*` document. Permit only
+	# this unsaved case for a Center Officer linked to an active Employee.
+	doc_name = str(getattr(doc, "name", "") or "")
+	is_new = getattr(doc, "is_new", None)
+	if (
+		permission_type == "write"
+		and employee
+		and ((callable(is_new) and is_new()) or doc_name.startswith("new-petty-cash-settlement-"))
+	):
+		return True
+
 	return bool(employee and doc.center_officer == employee)

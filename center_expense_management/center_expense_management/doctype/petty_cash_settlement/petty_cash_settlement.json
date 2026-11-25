@@ -202,7 +202,7 @@
    "label": "Expenses"
   },
   {
-   "description": "List of all expenses paid from the monthly petty cash.",
+   "description": "Enter the expenses and save the draft. Then attach private receipts before submitting for review.",
    "fieldname": "expenses",
    "fieldtype": "Table",
    "label": "Expenses",

@@ -319,16 +319,17 @@ class PettyCashSettlement(Document):
                 )
 
 
-            if not expense.receipt:
+            if not expense.receipt and (self.workflow_state or "Draft") != "Draft":
                 frappe.throw(
                     f"Receipt is required for expense row {expense.idx}."
                 )
 
-            receipt = frappe.db.get_value(
-                "File", {"file_url": expense.receipt}, ["name", "is_private"], as_dict=True
-            )
-            if not receipt or not receipt.is_private:
-                frappe.throw(f"Expense row {expense.idx}: Receipt must be a valid private File attachment.")
+            if expense.receipt:
+                receipt = frappe.db.get_value(
+                    "File", {"file_url": expense.receipt}, ["name", "is_private"], as_dict=True
+                )
+                if not receipt or not receipt.is_private:
+                    frappe.throw(f"Expense row {expense.idx}: Receipt must be a valid private File attachment.")
 
             if frappe.utils.get_first_day(expense.expense_date) != frappe.utils.get_first_day(self.month):
                 frappe.throw(f"Expense row {expense.idx}: Expense Date must be in the settlement month.")

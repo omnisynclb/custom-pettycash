@@ -58,7 +58,7 @@ class PermissionTests(unittest.TestCase):
 		with patch.object(permissions, "frappe", fake):
 			self.assertTrue(permissions.settlement_has_permission(doc, permission_type="create"))
 
-	def test_center_officer_can_upload_to_unsaved_own_settlement(self):
+	def test_temporary_name_does_not_grant_write_access(self):
 		fake = self.fake_frappe(roles={"LSA Center Officer"}, employee="HR-EMP-0001")
 		doc = types.SimpleNamespace(
 			name="new-petty-cash-settlement-random",
@@ -66,7 +66,7 @@ class PermissionTests(unittest.TestCase):
 			is_new=lambda: True,
 		)
 		with patch.object(permissions, "frappe", fake):
-			self.assertTrue(permissions.settlement_has_permission(doc, permission_type="write"))
+			self.assertFalse(permissions.settlement_has_permission(doc, permission_type="write"))
 
 	def test_center_officer_cannot_use_unsaved_upload_without_employee(self):
 		fake = self.fake_frappe(roles={"LSA Center Officer"})

@@ -69,7 +69,7 @@
    "reqd": 1
   },
   {
-   "description": "Save the settlement as a draft first, then attach a private invoice or receipt before submitting for review.",
+   "description": "Attach a private invoice or receipt before submitting for review.",
    "fieldname": "receipt",
    "fieldtype": "Attach",
    "columns": 1,

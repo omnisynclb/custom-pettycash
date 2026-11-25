@@ -31,7 +31,35 @@ frappe.ui.form.on('Petty Cash Settlement', {
             };
         });
     },
+    onload_post_render: function(frm) {
+        const grid = frm.fields_dict.expenses.grid.wrapper.get(0);
+        grid.addEventListener('click', function(event) {
+            if (!frm.is_new() || !event.target.closest('[data-fieldname="receipt"] .btn-attach')) {
+                return;
+            }
+            const row_name = event.target.closest('.grid-row')?.dataset.name;
+            const row = (frm.doc.expenses || []).find(expense => expense.name === row_name);
+            if (!row) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            new frappe.ui.FileUploader({
+                allow_multiple: false,
+                make_attachments_public: false,
+                on_success(file) {
+                    if (!file.is_private) {
+                        frappe.msgprint(__('Please upload the receipt as a private file.'));
+                        return;
+                    }
+                    frappe.model.set_value(row.doctype, row.name, 'receipt', file.file_url);
+                }
+            });
+        }, true);
+    },
     center_officer: function(frm) {
+        show_center_officer_details(frm);
         load_petty_cash_configuration(frm);
     },
 
@@ -48,7 +76,10 @@ frappe.ui.form.on('Petty Cash Settlement', {
     },
 
     refresh: function(frm) {
-        calculate_totals(frm);
+        show_center_officer_details(frm, frm.doc.__onload?.center_officer_details);
+        if (frm.is_new()) {
+            calculate_totals(frm);
+        }
         configure_account_information(frm);
         configure_payment_information(frm);
 
@@ -253,12 +284,14 @@ function load_petty_cash_configuration(frm) {
         return;
     }
 
+    const officer = frm.doc.center_officer;
     frm.call('load_petty_cash_configuration').then(function(response) {
         const config = response.message;
-        if (!config) {
+        if (!config || frm.doc.center_officer !== officer) {
             return;
         }
 
+        show_center_officer_details(frm, config.center_officer_details);
         frm.set_value('cost_center', config.cost_center);
         frm.set_value('petty_cash_account', config.petty_cash_account);
         frm.set_value('petty_cash_limit', config.petty_cash_limit);
@@ -267,18 +300,32 @@ function load_petty_cash_configuration(frm) {
     });
 }
 
+function show_center_officer_details(frm, details) {
+    const wrapper = frm.fields_dict.center_officer_details?.$wrapper;
+    if (!wrapper) return;
+    wrapper.empty();
+    if (!details) return;
+    for (const [label, value] of [
+        [__('Employee Name'), details.employee_name],
+        [__('Branch'), details.branch]
+    ]) {
+        $('<div class="mb-2"></div>').text(`${label}: ${value || __('Not set')}`).appendTo(wrapper);
+    }
+}
+
 function load_account_balance(frm) {
+    const account = frm.doc.account;
     if (!frm.doc.account) {
-        frm.set_value('amount', 0);
+        frm.get_field('amount').set_input(0);
         return;
     }
 
     frm.call('load_account_balance').then(function(r){
-        if (r.message === undefined || r.message === null){
+        if (frm.doc.account !== account || r.message === undefined || r.message === null){
             return;
         }
 
-        frm.set_value('amount',r.message);
+        frm.get_field('amount').set_input(r.message);
    });
 }
 

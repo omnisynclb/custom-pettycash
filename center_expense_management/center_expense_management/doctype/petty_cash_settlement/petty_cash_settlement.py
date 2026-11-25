@@ -42,6 +42,15 @@ MONTH_NAMES = (
 
 class PettyCashSettlement(Document):
 
+    def onload(self):
+        self.set_onload("center_officer_details", self.get_center_officer_details())
+
+    def get_center_officer_details(self):
+        if self.center_officer:
+            return frappe.db.get_value(
+                "Employee", self.center_officer, ["employee_name", "branch"], as_dict=True
+            )
+
     def validate(self):
         self.bind_center_officer_to_user()
         self.protect_initial_finance_fields()
@@ -91,8 +100,32 @@ class PettyCashSettlement(Document):
         )
 
     def on_update(self):
+        for expense in self.expenses:
+            if not expense.receipt:
+                continue
+            upload = self.get_pending_receipt(expense.receipt)
+            if upload:
+                frappe.db.set_value("File", upload, {
+                    "attached_to_doctype": self.doctype,
+                    "attached_to_name": self.name,
+                })
+
         if self.workflow_state == "Approved for Whish Payment" and self.has_value_changed("workflow_state"):
             self.update_petty_cash_whish()
+
+    def get_pending_receipt(self, file_url):
+        return frappe.db.get_value(
+            "File",
+            {
+                "file_url": file_url,
+                "is_private": 1,
+                "owner": frappe.session.user,
+                "attached_to_doctype": ["is", "not set"],
+                "attached_to_name": ["is", "not set"],
+            },
+            "name",
+            for_update=True,
+        )
 
     def on_cancel(self):
         self.cancel_payment_artifacts()
@@ -271,6 +304,7 @@ class PettyCashSettlement(Document):
         self.whish_id = config.whish_id
         self.currency = config.currency
 
+        config["center_officer_details"] = self.get_center_officer_details()
         return config
 
     @frappe.whitelist()
@@ -325,6 +359,8 @@ class PettyCashSettlement(Document):
                 )
 
             if expense.receipt:
+                if self.is_new() and not self.get_pending_receipt(expense.receipt):
+                    frappe.throw(f"Expense row {expense.idx}: Upload your receipt as a private file.")
                 receipt = frappe.db.get_value(
                     "File", {"file_url": expense.receipt}, ["name", "is_private"], as_dict=True
                 )

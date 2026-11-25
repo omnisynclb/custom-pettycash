@@ -9,6 +9,7 @@
   "section_break_1oge",
   "amended_from",
   "center_officer",
+  "center_officer_details",
   "month_name",
   "month_column_break",
   "settlement_year",
@@ -41,6 +42,10 @@
   "payment_status"
  ],
  "fields": [
+  {
+   "fieldname": "center_officer_details",
+   "fieldtype": "HTML"
+  },
   {
    "fieldname": "month_column_break",
    "fieldtype": "Column Break"
@@ -202,7 +207,7 @@
    "label": "Expenses"
   },
   {
-   "description": "Enter the expenses and save the draft. Then attach private receipts before submitting for review.",
+   "description": "Enter expenses and attach private receipts before submitting for review.",
    "fieldname": "expenses",
    "fieldtype": "Table",
    "label": "Expenses",

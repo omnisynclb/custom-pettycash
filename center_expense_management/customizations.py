@@ -116,10 +116,23 @@ def close_petty_cash_payment(doc, method=None):
 def reopen_petty_cash_payment(doc, method=None):
 	if not doc.get("petty_cash_settlement"):
 		return
+	settlement = frappe.db.get_value(
+		"Petty Cash Settlement",
+		doc.petty_cash_settlement,
+		["journal_entry", "docstatus"],
+		as_dict=True,
+		for_update=True,
+	)
+	if not settlement or settlement.journal_entry != doc.name or settlement.docstatus == 2:
+		return
+
+	# Release the active journal link before Frappe checks cancellation backlinks.
+	# Keep the cancelled journal's settlement reference for the audit trail.
 	frappe.db.set_value(
 		"Petty Cash Settlement",
 		doc.petty_cash_settlement,
 		{
+			"journal_entry": None,
 			"workflow_state": "Approved for Whish Payment",
 			"payment_status": "Pending Journal Entry",
 			"payment_date": None,
